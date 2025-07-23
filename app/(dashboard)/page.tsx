@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Search, FileText, Workflow } from 'lucide-react';
+import { ArrowRight, Search, FileText, Workflow, Zap } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -12,11 +12,11 @@ export default function HomePage() {
           <div className="lg:grid lg:grid-cols-12 lg:gap-16 items-center">
             <div className="sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left">
               <h1 className="text-4xl font-bold text-foreground tracking-tight sm:text-5xl md:text-6xl">
-                Stop Grinding.
-                <span className="block text-primary">Start Closing.</span>
+                Automate the TREC 1-4.
+                <span className="block text-primary">Instantly.</span>
               </h1>
               <p className="mt-3 text-base text-muted-foreground sm:mt-5 sm:text-xl lg:text-lg xl:text-xl">
-                Lazily.AI uses artificial intelligence to find off-market properties, manage leads, and automate contracts—giving you an unfair advantage.
+                Stop wasting hours on repetitive paperwork. Lazily.AI generates perfect, error-free residential contracts with one click, so you can focus on closing deals.
               </p>
               <div className="mt-8 sm:max-w-lg sm:mx-auto sm:text-center lg:text-left lg:mx-0">
                 <Button
@@ -25,7 +25,7 @@ export default function HomePage() {
                   className="text-lg rounded-full"
                 >
                   <Link href="/sign-up">
-                    Get Started for Free
+                    Generate Your First Contract
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
@@ -48,49 +48,49 @@ export default function HomePage() {
       <section className="py-16 bg-card/50 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-             <h2 className="text-3xl font-bold text-foreground">The Effortless Deal Engine</h2>
-             <p className="mt-2 text-lg text-muted-foreground">Everything you need to close more deals with less work.</p>
+             <h2 className="text-3xl font-bold text-foreground">The Effortless Contract Engine</h2>
+             <p className="mt-2 text-lg text-muted-foreground">Turn hours of paperwork into seconds of work.</p>
           </div>
           <div className="lg:grid lg:grid-cols-3 lg:gap-8">
             {/* Feature 1 */}
             <div>
               <div className="flex items-center justify-center h-12 w-12 rounded-md bg-primary/20 text-primary">
-                <Search className="h-6 w-6" />
+                <Zap className="h-6 w-6" />
               </div>
               <div className="mt-5">
                 <h3 className="text-lg font-medium text-foreground">
-                  AI-Powered Lead Generation
+                  Instant Generation
                 </h3>
                 <p className="mt-2 text-base text-muted-foreground">
-                  Discover undervalued, off-market properties and motivated sellers with our intelligent data analysis.
+                  Input your deal details and generate a complete, compliant TREC 1-4 contract in less than 30 seconds.
                 </p>
               </div>
             </div>
             {/* Feature 2 */}
             <div className="mt-10 lg:mt-0">
               <div className="flex items-center justify-center h-12 w-12 rounded-md bg-primary/20 text-primary">
-                <Workflow className="h-6 w-6" />
+                <FileText className="h-6 w-6" />
               </div>
               <div className="mt-5">
                 <h3 className="text-lg font-medium text-foreground">
-                  Streamlined Deal Flow
+                  Eliminate Errors
                 </h3>
                 <p className="mt-2 text-base text-muted-foreground">
-                  Manage your leads, track communications, and move deals through your pipeline with our intuitive interface.
+                  Our AI ensures every field is filled correctly, every time, reducing the risk of costly mistakes and delays.
                 </p>
               </div>
             </div>
             {/* Feature 3 */}
             <div className="mt-10 lg:mt-0">
               <div className="flex items-center justify-center h-12 w-12 rounded-md bg-primary/20 text-primary">
-                <FileText className="h-6 w-6" />
+                <Workflow className="h-6 w-6" />
               </div>
               <div className="mt-5">
                 <h3 className="text-lg font-medium text-foreground">
-                  One-Click Contracts
+                  Bulk Automation
                 </h3>
                 <p className="mt-2 text-base text-muted-foreground">
-                  Generate accurate, compliant TREC 1-4 contracts instantly. Eliminate errors and save hours of paperwork.
+                  Have a list of properties? Upload a spreadsheet and generate hundreds of contracts at once. Effortlessly done.
                 </p>
               </div>
             </div>
@@ -104,10 +104,10 @@ export default function HomePage() {
           <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-center">
             <div>
              <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
-                Ready to close deals lazily?
+                Ready to stop typing and start closing?
              </h2>
               <p className="mt-3 max-w-3xl text-lg text-muted-foreground">
-                Get started today with a free trial. No credit card required.
+                Get started with a low monthly fee and simple, pay-as-you-go contract generation.
               </p>
             </div>
             <div className="mt-8 lg:mt-0 flex justify-center lg:justify-end">
@@ -116,8 +116,8 @@ export default function HomePage() {
                   asChild
                   className="text-lg rounded-full"
                 >
-                  <Link href="/sign-up">
-                    Claim Your Free Trial
+                  <Link href="/pricing">
+                    View Pricing
                     <ArrowRight className="ml-3 h-6 w-6" />
                   </Link>
                 </Button>
