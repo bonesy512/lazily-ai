@@ -42,7 +42,8 @@ function AccountForm({ user }: { user: User | undefined }) {
       <div className="space-y-4 pt-4">
         <Label className="font-medium">Marketing Preferences</Label>
         <div className="flex items-start space-x-3">
-          <Checkbox id="marketingEmailConsent" name="marketingEmailConsent" defaultChecked={user?.marketingEmailConsent} />
+          {/* THE FIX IS HERE */}
+          <Checkbox id="marketingEmailConsent" name="marketingEmailConsent" defaultChecked={user?.marketingEmailConsent || false} />
           <div className="grid gap-1.5 leading-none">
             <label htmlFor="marketingEmailConsent" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Receive emails from Lazily.AI
@@ -53,7 +54,8 @@ function AccountForm({ user }: { user: User | undefined }) {
           </div>
         </div>
         <div className="flex items-start space-x-3">
-          <Checkbox id="marketingSmsConsent" name="marketingSmsConsent" defaultChecked={user?.marketingSmsConsent}/>
+          {/* AND THE FIX IS HERE */}
+          <Checkbox id="marketingSmsConsent" name="marketingSmsConsent" defaultChecked={user?.marketingSmsConsent || false}/>
           <div className="grid gap-1.5 leading-none">
             <label htmlFor="marketingSmsConsent" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Receive text messages (SMS) from Lazily.AI
