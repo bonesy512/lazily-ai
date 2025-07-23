@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Users, Settings, Shield, Activity, Menu, FileText, CreditCard } from 'lucide-react'; // Added CreditCard
+import { Users, Settings, Shield, Activity, Menu, FileText, CreditCard } from 'lucide-react';
 
 export default function DashboardLayout({
   children
@@ -14,7 +14,6 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Updated navItems to include the new "Billing" page
   const navItems = [
     { href: '/dashboard/contracts', icon: FileText, label: 'Contracts' },
     { href: '/dashboard/billing', icon: CreditCard, label: 'Billing' },
@@ -41,12 +40,19 @@ export default function DashboardLayout({
         </Button>
       </div>
 
-      <div className="flex flex-1 overflow-hidden h-full">
+      <div className="flex flex-1 h-full">
+        {/* START: Added overlay for mobile menu */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+        {/* END: Added overlay for mobile menu */}
+        
         {/* Sidebar */}
         <aside
-          className={`w-64 bg-card lg:bg-background/50 border-r border-border lg:block ${
-            isSidebarOpen ? 'block' : 'hidden'
-          } lg:relative absolute inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+          className={`w-64 bg-card lg:bg-background/50 border-r border-border lg:block fixed inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -56,7 +62,7 @@ export default function DashboardLayout({
                 <Button
                   variant={pathname === item.href ? 'secondary' : 'ghost'}
                   className="shadow-none my-1 w-full justify-start gap-2"
-                  onClick={() => setIsSidebarOpen(false)}
+                  onClick={() => setIsSidebarOpen(false)} // Close menu on link click
                 >
                   <item.icon className="h-4 w-4" />
                   {item.label}
@@ -67,7 +73,11 @@ export default function DashboardLayout({
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8">{children}</main>
+        <div className="flex-1 lg:pl-64"> {/* Added padding to prevent content from going under the sidebar on desktop */}
+            <main className="p-4 lg:p-8">
+                {children}
+            </main>
+        </div>
       </div>
     </div>
   );
