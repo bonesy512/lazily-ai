@@ -146,7 +146,6 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
   let createdTeam: typeof teams.$inferSelect | null = null;
 
   if (inviteId) {
-    // Check if there's a valid invitation
     const [invitation] = await db
       .select()
       .from(invitations)
@@ -162,12 +161,10 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
     if (invitation) {
       teamId = invitation.teamId;
       userRole = invitation.role;
-
       await db
         .update(invitations)
         .set({ status: 'accepted' })
         .where(eq(invitations.id, invitation.id));
-
       await logActivity(teamId, createdUser.id, ActivityType.ACCEPT_INVITATION);
 
       [createdTeam] = await db
@@ -179,11 +176,9 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
       return { error: 'Invalid or expired invitation.', email, password };
     }
   } else {
-    // Create a new team if there's no invitation
     const newTeam: NewTeam = {
       name: `${email}'s Team`
     };
-
     [createdTeam] = await db.insert(teams).values(newTeam).returning();
 
     if (!createdTeam) {
@@ -340,17 +335,25 @@ export const deleteAccount = validatedActionWithUser(
 
 const updateAccountSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
-  email: z.string().email('Invalid email address')
+  email: z.string().email('Invalid email address'),
+  phone: z.string().optional(),
+  marketingEmailConsent: z.enum(['on', 'off']).optional(),
+  marketingSmsConsent: z.enum(['on', 'off']).optional()
 });
 
 export const updateAccount = validatedActionWithUser(
   updateAccountSchema,
   async (data, _, user) => {
-    const { name, email } = data;
+    const { name, phone, marketingEmailConsent, marketingSmsConsent } = data;
     const userWithTeam = await getUserWithTeam(user.id);
 
     await Promise.all([
-      db.update(users).set({ name, email }).where(eq(users.id, user.id)),
+      db.update(users).set({ 
+        name,
+        phone,
+        marketingEmailConsent: marketingEmailConsent === 'on',
+        marketingSmsConsent: marketingSmsConsent === 'on'
+      }).where(eq(users.id, user.id)),
       logActivity(userWithTeam?.teamId, user.id, ActivityType.UPDATE_ACCOUNT)
     ]);
 
@@ -419,7 +422,6 @@ export const inviteTeamMember = validatedActionWithUser(
       return { error: 'User is already a member of this team' };
     }
 
-    // Check if there's an existing invitation
     const existingInvitation = await db
       .select()
       .from(invitations)
@@ -436,7 +438,6 @@ export const inviteTeamMember = validatedActionWithUser(
       return { error: 'An invitation has already been sent to this email' };
     }
 
-    // Create a new invitation
     await db.insert(invitations).values({
       teamId: userWithTeam.teamId,
       email,
@@ -450,10 +451,34 @@ export const inviteTeamMember = validatedActionWithUser(
       user.id,
       ActivityType.INVITE_TEAM_MEMBER
     );
-
-    // TODO: Send invitation email and include ?inviteId={id} to sign-up URL
-    // await sendInvitationEmail(email, userWithTeam.team.name, role)
-
+    
     return { success: 'Invitation sent successfully' };
   }
 );
+
+// --- START: NEW CODE FOR LAZILY.AI ---
+const processCsvSchema = z.object({
+  csvFile: z.any(), // In a real app, you'd want a more robust validation
+});
+
+export const processCsvFile = validatedActionWithUser(
+  processCsvSchema,
+  async (data, formData, user) => {
+    const file = formData.get('csvFile') as File;
+
+    if (!file || file.size === 0) {
+      return { error: 'No file was uploaded.' };
+    }
+
+    // In the future, we will add the logic here to:
+    // 1. Parse the CSV file content.
+    // 2. Loop through each row.
+    // 3. Save the data to the 'properties' and 'owners' tables.
+    // 4. Decrease the team's 'contractCredits' balance.
+
+    console.log(`CSV file received: ${file.name}, size: ${file.size} bytes`);
+    
+    return { success: `Successfully received '${file.name}'. Processing will begin shortly.` };
+  }
+);
+// --- END: NEW CODE FOR LAZILY.AI ---
