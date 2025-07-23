@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UploadCloud, FileText } from "lucide-react";
-import { useActionState } from 'react';
+import { useActionState, Suspense } from 'react';
 import { processCsvFile } from '@/app/(login)/actions';
 import { CreditsCounter } from "@/components/dashboard/CreditsCounter"; // This line is now correct
 
@@ -20,7 +20,9 @@ export default function ContractsPage() {
   return (
     <section className="space-y-6">
       <div className="grid gap-4 md:grid-cols-4">
-        <CreditsCounter />
+        <Suspense fallback={<Card className="h-32 animate-pulse" />}>
+          <CreditsCounter />
+        </Suspense>
       </div>
       
       <Card>

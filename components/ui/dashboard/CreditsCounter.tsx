@@ -1,5 +1,3 @@
-// components/dashboard/CreditsCounter.tsx
-
 'use client';
 
 import useSWR from 'swr';
