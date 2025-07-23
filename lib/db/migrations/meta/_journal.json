@@ -15,6 +15,13 @@
       "when": 1753297708925,
       "tag": "0001_mixed_lilith",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1753314242034,
+      "tag": "0002_regular_madelyne_pryor",
+      "breakpoints": true
     }
   ]
 }

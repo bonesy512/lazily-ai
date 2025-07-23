@@ -55,8 +55,12 @@ export const properties = pgTable('properties', {
   streetAddress: varchar('street_address', { length: 255 }),
   city: varchar('city', { length: 100 }),
   zipCode: varchar('zip_code', { length: 20 }),
+  lot: varchar('lot', { length: 100 }),             // <-- ADD THIS LINE
+  block: varchar('block', { length: 100 }),           // <-- ADD THIS LINE
+  addition: varchar('addition', { length: 255 }),     // <-- ADD THIS LINE
+  county: varchar('county', { length: 100 }),         // <-- ADD THIS LINE
   offerPrice: varchar('offer_price', { length: 50 }),
-  status: varchar('status', { length: 50 }).default('pending'), // e.g., 'pending', 'generated', 'error'
+  status: varchar('status', { length: 50 }).default('pending'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
