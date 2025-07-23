@@ -44,7 +44,7 @@ export default function DashboardLayout({
         {/* START: Added overlay for mobile menu */}
         {isSidebarOpen && (
           <div
-            className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+            className="fixed inset-0 z-100 bg-black/50 lg:hidden"
             onClick={() => setIsSidebarOpen(false)}
           />
         )}
@@ -52,7 +52,7 @@ export default function DashboardLayout({
         
         {/* Sidebar */}
         <aside
-          className={`w-64 bg-card lg:bg-background/50 border-r border-border lg:block fixed inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
+          className={`w-64 bg-card lg:bg-background/50 border-r border-border lg:block fixed inset-y-0 left-0 z-100 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
