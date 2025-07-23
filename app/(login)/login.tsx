@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react'; // <-- Added ArrowLeft icon
 import { signIn, signUp } from './actions';
 import { ActionState } from '@/lib/auth/middleware';
 
@@ -43,7 +43,19 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
         </h2>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      {/* START: New "Back to Home" link */}
+      <div className="mt-6 text-center">
+        <Link
+          href="/"
+          className="text-sm inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span>Back to Home</span>
+        </Link>
+      </div>
+      {/* END: New "Back to Home" link */}
+
+      <div className="mt-4 sm:mx-auto sm:w-full sm:max-w-md">
         <Card className="p-8">
           <form className="space-y-6" action={formAction}>
             <input type="hidden" name="redirect" value={redirect || ''} />
@@ -135,7 +147,7 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
                 >
                   {mode === 'signin'
                     ? 'Create an account'
-                    : 'Sign in'}
+                    'Sign in'}
                 </Link>
               </Button>
             </div>
