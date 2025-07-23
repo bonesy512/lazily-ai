@@ -4,6 +4,7 @@ import { Manrope } from 'next/font/google';
 import { getUser, getTeamForUser } from '@/lib/db/queries';
 import { SWRConfig } from 'swr';
 import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 // Enhanced Metadata for Lazily.AI brand, SEO, and Social Sharing
 export const metadata: Metadata = {
@@ -66,6 +67,7 @@ export default function RootLayout({
           {children}
         </SWRConfig>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
