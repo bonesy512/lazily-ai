@@ -9,6 +9,8 @@ import {
   teams,
   teamMembers,
   activityLogs,
+  properties, // <-- Import for CSV processing
+  owners,     // <-- Import for CSV processing
   type NewUser,
   type NewTeam,
   type NewTeamMember,
@@ -25,6 +27,7 @@ import {
   validatedAction,
   validatedActionWithUser
 } from '@/lib/auth/middleware';
+import Papa from 'papaparse'; // <-- Import for CSV processing
 
 async function logActivity(
   teamId: number | null | undefined,
@@ -117,7 +120,7 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
 
   if (existingUser.length > 0) {
     return {
-      error: 'Failed to create user. Please try again.',
+      error: 'An account with this email already exists.',
       email,
       password
     };
@@ -128,7 +131,7 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
   const newUser: NewUser = {
     email,
     passwordHash,
-    role: 'owner' // Default role, will be overridden if there's an invitation
+    role: 'owner'
   };
 
   const [createdUser] = await db.insert(users).values(newUser).returning();
@@ -166,7 +169,6 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
         .set({ status: 'accepted' })
         .where(eq(invitations.id, invitation.id));
       await logActivity(teamId, createdUser.id, ActivityType.ACCEPT_INVITATION);
-
       [createdTeam] = await db
         .select()
         .from(teams)
@@ -188,10 +190,8 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
         password
       };
     }
-
     teamId = createdTeam.id;
     userRole = 'owner';
-
     await logActivity(teamId, createdUser.id, ActivityType.CREATE_TEAM);
   }
 
@@ -220,7 +220,7 @@ export async function signOut() {
   const user = (await getUser()) as User;
   const userWithTeam = await getUserWithTeam(user.id);
   await logActivity(userWithTeam?.teamId, user.id, ActivityType.SIGN_OUT);
-  (await cookies()).delete('session');
+  cookies().delete('session');
 }
 
 const updatePasswordSchema = z.object({
@@ -308,12 +308,11 @@ export const deleteAccount = validatedActionWithUser(
       ActivityType.DELETE_ACCOUNT
     );
 
-    // Soft delete
     await db
       .update(users)
       .set({
         deletedAt: sql`CURRENT_TIMESTAMP`,
-        email: sql`CONCAT(email, '-', id, '-deleted')` // Ensure email uniqueness
+        email: sql`CONCAT(email, '-', id, '-deleted')`
       })
       .where(eq(users.id, user.id));
 
@@ -328,11 +327,12 @@ export const deleteAccount = validatedActionWithUser(
         );
     }
 
-    (await cookies()).delete('session');
+    cookies().delete('session');
     redirect('/sign-in');
   }
 );
 
+// --- START: UPDATED ACCOUNT ACTION ---
 const updateAccountSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
   email: z.string().email('Invalid email address'),
@@ -360,9 +360,10 @@ export const updateAccount = validatedActionWithUser(
     return { name, success: 'Account updated successfully.' };
   }
 );
+// --- END: UPDATED ACCOUNT ACTION ---
 
 const removeTeamMemberSchema = z.object({
-  memberId: z.number()
+  memberId: z.coerce.number()
 });
 
 export const removeTeamMember = validatedActionWithUser(
@@ -456,9 +457,9 @@ export const inviteTeamMember = validatedActionWithUser(
   }
 );
 
-// --- START: NEW CODE FOR LAZILY.AI ---
+// --- START: NEW CSV PROCESSING ACTION ---
 const processCsvSchema = z.object({
-  csvFile: z.any(), // In a real app, you'd want a more robust validation
+  csvFile: z.any(),
 });
 
 export const processCsvFile = validatedActionWithUser(
@@ -470,15 +471,72 @@ export const processCsvFile = validatedActionWithUser(
       return { error: 'No file was uploaded.' };
     }
 
-    // In the future, we will add the logic here to:
-    // 1. Parse the CSV file content.
-    // 2. Loop through each row.
-    // 3. Save the data to the 'properties' and 'owners' tables.
-    // 4. Decrease the team's 'contractCredits' balance.
+    const userWithTeam = await getUserWithTeam(user.id);
+    if (!userWithTeam?.teamId) {
+      return { error: 'Could not find your team information.' };
+    }
 
-    console.log(`CSV file received: ${file.name}, size: ${file.size} bytes`);
+    const team = await db.query.teams.findFirst({
+      where: eq(teams.id, userWithTeam.teamId),
+    });
+
+    if (!team) {
+      return { error: 'Could not load your team data.' };
+    }
+
+    const csvText = await file.text();
     
-    return { success: `Successfully received '${file.name}'. Processing will begin shortly.` };
+    const parsedCsv = Papa.parse(csvText, {
+      header: true,
+      skipEmptyLines: true,
+    });
+    
+    const rows = parsedCsv.data;
+    const requiredCredits = rows.length;
+
+    if (requiredCredits === 0) {
+      return { error: 'The uploaded CSV file is empty or invalid.' };
+    }
+
+    if (team.contractCredits < requiredCredits) {
+      return { 
+        error: `You do not have enough credits. This upload requires ${requiredCredits} credits, but you only have ${team.contractCredits}.` 
+      };
+    }
+
+    try {
+      for (const row of rows) {
+        // NOTE: These column names must EXACTLY match the headers in your CSV file.
+        const { StreetAddress, City, ZipCode, OwnerName, MailingAddress, OfferPrice } = row as any;
+
+        const [newOwner] = await db.insert(owners).values({
+          teamId: team.id,
+          fullName: OwnerName,
+          mailingAddress: MailingAddress,
+        }).returning();
+
+        await db.insert(properties).values({
+          teamId: team.id,
+          ownerId: newOwner.id,
+          streetAddress: StreetAddress,
+          city: City,
+          zipCode: ZipCode,
+          offerPrice: OfferPrice,
+          status: 'pending',
+        });
+      }
+
+      const newCreditTotal = team.contractCredits - requiredCredits;
+      await db.update(teams)
+        .set({ contractCredits: newCreditTotal })
+        .where(eq(teams.id, team.id));
+      
+      return { success: `Successfully processed ${requiredCredits} properties. Your new credit balance is ${newCreditTotal}.` };
+
+    } catch (e: any) {
+      console.error("CSV Processing Error:", e);
+      return { error: 'An error occurred while processing the file. Please check your CSV column names match the required format.' };
+    }
   }
 );
-// --- END: NEW CODE FOR LAZILY.AI ---
+// --- END: NEW CSV PROCESSING ACTION ---
