@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, ArrowLeft } from 'lucide-react'; // <-- Added ArrowLeft icon
+import { Loader2, ArrowLeft } from 'lucide-react';
 import { signIn, signUp } from './actions';
 import { ActionState } from '@/lib/auth/middleware';
 
@@ -43,7 +43,6 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
         </h2>
       </div>
 
-      {/* START: New "Back to Home" link */}
       <div className="mt-6 text-center">
         <Link
           href="/"
@@ -53,7 +52,6 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
           <span>Back to Home</span>
         </Link>
       </div>
-      {/* END: New "Back to Home" link */}
 
       <div className="mt-4 sm:mx-auto sm:w-full sm:max-w-md">
         <Card className="p-8">
@@ -147,7 +145,7 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
                 >
                   {mode === 'signin'
                     ? 'Create an account'
-                    'Sign in'}
+                    : 'Sign in'}{/* <-- THE FIX WAS HERE (missing colon) */}
                 </Link>
               </Button>
             </div>
