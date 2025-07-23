@@ -9,9 +9,8 @@ import Link from 'next/link';
 export const revalidate = 3600;
 
 export default async function PricingPage() {
-    // IMPORTANT: Replace this with the actual Price ID from your Stripe Dashboard
-    // This should be the ID for your "$10/month" recurring price.
-    const platformAccessPriceId = 'price_12345ABCDE'; // <--- ACTION REQUIRED: REPLACE THIS ID
+    // This now uses your real Price ID for the $10/month subscription
+    const platformAccessPriceId = 'price_1Ro7K7PnNiwcL8wHamerpDyu';
 
     return (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
