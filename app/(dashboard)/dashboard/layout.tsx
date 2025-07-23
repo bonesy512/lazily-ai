@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Users, Settings, Shield, Activity, Menu, FileText } from 'lucide-react'; // Added FileText
+import { Users, Settings, Shield, Activity, Menu, FileText, CreditCard } from 'lucide-react'; // Added CreditCard
 
 export default function DashboardLayout({
   children
@@ -14,9 +14,10 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Updated navItems to include the new "Contracts" page
+  // Updated navItems to include the new "Billing" page
   const navItems = [
     { href: '/dashboard/contracts', icon: FileText, label: 'Contracts' },
+    { href: '/dashboard/billing', icon: CreditCard, label: 'Billing' },
     { href: '/dashboard', icon: Users, label: 'Team Settings' },
     { href: '/dashboard/general', icon: Settings, label: 'General' },
     { href: '/dashboard/activity', icon: Activity, label: 'Activity' },
