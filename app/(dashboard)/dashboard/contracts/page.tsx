@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { UploadCloud, FileText } from "lucide-react";
 import { useActionState } from 'react';
 import { processCsvFile } from '@/app/(login)/actions';
-import { CreditsCounter } from "@/components/dashboard/CreditsCounter"; // Import the new component
+import { CreditsCounter } from "@/components/dashboard/CreditsCounter"; // This line is now correct
 
 type ActionState = {
   error?: string;

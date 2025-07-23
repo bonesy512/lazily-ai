@@ -7,7 +7,7 @@ import useSWR from 'swr';
 import { TeamDataWithMembers } from '@/lib/db/schema';
 import { Suspense } from "react";
 import { useFormStatus } from 'react-dom';
-import { CreditsCounter } from "@/components/dashboard/CreditsCounter"; // Import the new component
+import { CreditsCounter } from "@/components/dashboard/CreditsCounter"; // This line is now correct
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
