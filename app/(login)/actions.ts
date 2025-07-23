@@ -53,7 +53,6 @@ const signInSchema = z.object({
 });
 
 export const signIn = validatedAction(signInSchema, async (data, formData) => {
-  // ... (This function is correct and remains unchanged)
   const { email, password } = data;
   const userWithTeam = await db
     .select({ user: users, team: teams })
@@ -89,7 +88,6 @@ const signUpSchema = z.object({
 });
 
 export const signUp = validatedAction(signUpSchema, async (data, formData) => {
-  // ... (This function is correct and remains unchanged)
   const { email, password, inviteId } = data;
   const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
   if (existingUser.length > 0) {
@@ -140,11 +138,10 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
 });
 
 export async function signOut() {
-  // ... (This function is correct and remains unchanged)
   const user = (await getUser()) as User;
   const userWithTeam = await getUserWithTeam(user.id);
   await logActivity(userWithTeam?.teamId, user.id, ActivityType.SIGN_OUT);
-  cookies().delete('session');
+  (await cookies()).delete('session');
 }
 
 const updatePasswordSchema = z.object({
@@ -156,7 +153,6 @@ const updatePasswordSchema = z.object({
 export const updatePassword = validatedActionWithUser(
   updatePasswordSchema,
   async (data, _, user) => {
-    // ... (This function is correct and remains unchanged)
     const { currentPassword, newPassword, confirmPassword } = data;
     const isPasswordValid = await comparePasswords(currentPassword, user.passwordHash);
     if (!isPasswordValid) {
@@ -178,8 +174,6 @@ export const updatePassword = validatedActionWithUser(
   }
 );
 
-
-// --- START: CORRECTED DELETE ACCOUNT ACTION ---
 const deleteAccountSchema = z.object({
   password: z.string().min(8).max(100)
 });
@@ -188,24 +182,12 @@ export const deleteAccount = validatedActionWithUser(
   deleteAccountSchema,
   async (data, _, user) => {
     const { password } = data;
-
     const isPasswordValid = await comparePasswords(password, user.passwordHash);
     if (!isPasswordValid) {
-      return {
-        password,
-        error: 'Incorrect password. Account deletion failed.'
-      };
+      return { password, error: 'Incorrect password. Account deletion failed.' };
     }
-
     const userWithTeam = await getUserWithTeam(user.id);
-
-    await logActivity(
-      userWithTeam?.teamId,
-      user.id,
-      ActivityType.DELETE_ACCOUNT
-    );
-
-    // Soft delete the user
+    await logActivity(userWithTeam?.teamId, user.id, ActivityType.DELETE_ACCOUNT);
     await db
       .update(users)
       .set({
@@ -213,8 +195,6 @@ export const deleteAccount = validatedActionWithUser(
         email: sql`CONCAT(email, '-', id, '-deleted')`
       })
       .where(eq(users.id, user.id));
-
-    // Remove the user from the team
     if (userWithTeam?.teamId) {
       await db
         .delete(teamMembers)
@@ -225,13 +205,10 @@ export const deleteAccount = validatedActionWithUser(
           )
         );
     }
-
-    cookies().delete('session');
+    (await cookies()).delete('session');
     redirect('/sign-in');
   }
 );
-// --- END: CORRECTED DELETE ACCOUNT ACTION ---
-
 
 const updateAccountSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
@@ -244,11 +221,15 @@ const updateAccountSchema = z.object({
 export const updateAccount = validatedActionWithUser(
   updateAccountSchema,
   async (data, _, user) => {
-    // ... (This function is correct and remains unchanged)
     const { name, phone, marketingEmailConsent, marketingSmsConsent } = data;
     const userWithTeam = await getUserWithTeam(user.id);
     await Promise.all([
-      db.update(users).set({ name, phone, marketingEmailConsent: marketingEmailConsent === 'on', marketingSmsConsent: marketingSmsConsent === 'on' }).where(eq(users.id, user.id)),
+      db.update(users).set({ 
+        name,
+        phone,
+        marketingEmailConsent: marketingEmailConsent === 'on',
+        marketingSmsConsent: marketingSmsConsent === 'on'
+      }).where(eq(users.id, user.id)),
       logActivity(userWithTeam?.teamId, user.id, ActivityType.UPDATE_ACCOUNT)
     ]);
     return { name, success: 'Account updated successfully.' };
@@ -262,7 +243,6 @@ const removeTeamMemberSchema = z.object({
 export const removeTeamMember = validatedActionWithUser(
   removeTeamMemberSchema,
   async (data, _, user) => {
-    // ... (This function is correct and remains unchanged)
     const { memberId } = data;
     const userWithTeam = await getUserWithTeam(user.id);
     if (!userWithTeam?.teamId) {
@@ -282,7 +262,6 @@ const inviteTeamMemberSchema = z.object({
 export const inviteTeamMember = validatedActionWithUser(
   inviteTeamMemberSchema,
   async (data, _, user) => {
-    // ... (This function is correct and remains unchanged)
     const { email, role } = data;
     const userWithTeam = await getUserWithTeam(user.id);
     if (!userWithTeam?.teamId) {
@@ -309,7 +288,6 @@ const processCsvSchema = z.object({
 export const processCsvFile = validatedActionWithUser(
   processCsvSchema,
   async (data, formData, user) => {
-    // ... (This function is correct and remains unchanged)
     const file = formData.get('csvFile') as File;
     if (!file || file.size === 0) {
       return { error: 'No file was uploaded.' };
@@ -346,4 +324,3 @@ export const processCsvFile = validatedActionWithUser(
       return { error: 'An error occurred while processing the file. Please check your CSV column names match the required format.' };
     }
   }
-);
