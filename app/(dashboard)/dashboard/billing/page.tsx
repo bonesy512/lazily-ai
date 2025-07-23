@@ -18,14 +18,14 @@ function ManageSubscription() {
       <CardHeader>
         <CardTitle>Your Subscription</CardTitle>
         <CardDescription>
-          Your team is currently on the Lazily.AI Platform Access plan.
+          Your $10/month subscription gives you access to the Lazily.AI platform and all its features.
         </CardDescription>
       </CardHeader>
       <CardContent>
           <div className="flex justify-between items-center">
             <div>
               <p className="font-medium text-lg">
-                $19 / month
+                $10 / month
               </p>
               <p className="text-sm text-muted-foreground capitalize">
                 Status: {teamData?.subscriptionStatus || '...'}
@@ -75,7 +75,7 @@ export default function BillingPage() {
           <CardHeader>
             <CardTitle>Purchase Contract Credits</CardTitle>
             <CardDescription>
-              Buy credits in bulk for a discount. Each credit is good for one TREC-1-4 form generation.
+              One credit is used for each TREC 1-4 form you generate. For example, uploading a CSV with 20 rows will require 20 credits.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid md:grid-cols-3 gap-6">
