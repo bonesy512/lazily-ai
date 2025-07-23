@@ -11,18 +11,27 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-04-30.basil'
 });
 
+// This function is now updated to handle both 'subscription' and 'payment' modes
 export async function createCheckoutSession({
   team,
-  priceId
+  priceId,
+  mode = 'subscription' // Default to 'subscription' for backward compatibility
 }: {
   team: Team | null;
   priceId: string;
+  mode?: 'subscription' | 'payment'; // Allow specifying the checkout mode
 }) {
   const user = await getUser();
-
   if (!team || !user) {
     redirect(`/sign-up?redirect=checkout&priceId=${priceId}`);
   }
+
+  // Determine success URL based on checkout mode
+  const successUrlPath = mode === 'subscription' 
+    ? '/api/stripe/checkout?session_id={CHECKOUT_SESSION_ID}' 
+    : '/dashboard/billing?success=true';
+  
+  const cancelUrlPath = mode === 'subscription' ? '/pricing' : '/dashboard/billing';
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
@@ -32,15 +41,12 @@ export async function createCheckoutSession({
         quantity: 1
       }
     ],
-    mode: 'subscription',
-    success_url: `${process.env.BASE_URL}/api/stripe/checkout?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.BASE_URL}/pricing`,
+    mode: mode, // Use the new 'mode' parameter
+    success_url: `${process.env.BASE_URL}${successUrlPath}`,
+    cancel_url: `${process.env.BASE_URL}${cancelUrlPath}`,
     customer: team.stripeCustomerId || undefined,
     client_reference_id: user.id.toString(),
     allow_promotion_codes: true,
-    subscription_data: {
-      trial_period_days: 14
-    }
   });
 
   redirect(session.url!);
@@ -53,7 +59,6 @@ export async function createCustomerPortalSession(team: Team) {
 
   let configuration: Stripe.BillingPortal.Configuration;
   const configurations = await stripe.billingPortal.configurations.list();
-
   if (configurations.data.length > 0) {
     configuration = configurations.data[0];
   } else {
@@ -152,7 +157,6 @@ export async function getStripePrices() {
     active: true,
     type: 'recurring'
   });
-
   return prices.data.map((price) => ({
     id: price.id,
     productId:
@@ -169,7 +173,6 @@ export async function getStripeProducts() {
     active: true,
     expand: ['data.default_price']
   });
-
   return products.data.map((product) => ({
     id: product.id,
     name: product.name,
