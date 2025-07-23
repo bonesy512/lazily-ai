@@ -7,6 +7,7 @@ import useSWR from 'swr';
 import { TeamDataWithMembers } from '@/lib/db/schema';
 import { Suspense } from "react";
 import { useFormStatus } from 'react-dom';
+import { CreditsCounter } from "@/components/dashboard/CreditsCounter"; // Import the new component
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -76,6 +77,12 @@ export default function BillingPage() {
       </h1>
       
       <div className="space-y-8">
+        <div className="grid gap-4 md:grid-cols-4">
+            <div className="md:col-span-1">
+                <CreditsCounter />
+            </div>
+        </div>
+        
         <Suspense fallback={<Card className="h-32 animate-pulse" />}>
           <ManageSubscription />
         </Suspense>

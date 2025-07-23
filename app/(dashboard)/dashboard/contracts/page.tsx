@@ -5,22 +5,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UploadCloud, FileText } from "lucide-react";
+import { useActionState } from 'react';
+import { processCsvFile } from '@/app/(login)/actions';
+import { CreditsCounter } from "@/components/dashboard/CreditsCounter"; // Import the new component
+
+type ActionState = {
+  error?: string;
+  success?: string;
+};
 
 export default function ContractsPage() {
-
-  // We will add the logic for handling the file upload later.
-  // For now, this is the UI scaffolding.
-  const handleFileUpload = () => {
-    alert("File upload functionality will be implemented here!");
-  };
+  const [state, formAction, isPending] = useActionState<ActionState, FormData>(processCsvFile, {});
 
   return (
-    <section>
-      <h1 className="text-lg lg:text-2xl font-medium mb-6">
-        Bulk Contract Generation
-      </h1>
+    <section className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-4">
+        <CreditsCounter />
+      </div>
       
-      <Card className="mb-8">
+      <Card>
         <CardHeader>
           <CardTitle>Upload Your Property List</CardTitle>
           <CardDescription>
@@ -28,20 +31,22 @@ export default function ContractsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="space-y-4">
+          <form action={formAction} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="csv-upload">CSV File</Label>
               <div className="flex items-center gap-4">
-                <Input id="csv-upload" type="file" accept=".csv" className="max-w-xs" />
-                <Button onClick={handleFileUpload}>
+                <Input id="csv-upload" name="csvFile" type="file" accept=".csv" required className="max-w-xs" />
+                <Button type="submit" disabled={isPending}>
                   <UploadCloud className="mr-2 h-4 w-4" />
-                  Upload and Process
+                  {isPending ? 'Uploading...' : 'Upload and Process'}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Required columns: [StreetAddress], [City], [ZipCode], [OwnerName], [OfferPrice]...
+                Required columns: StreetAddress, City, ZipCode, OwnerName, OfferPrice...
               </p>
             </div>
+            {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+            {state.success && <p className="text-sm text-green-600">{state.success}</p>}
           </form>
         </CardContent>
       </Card>
@@ -54,7 +59,6 @@ export default function ContractsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* This is a placeholder for where the results will be displayed */}
           <div className="flex flex-col items-center justify-center text-center py-12 border-2 border-dashed border-border rounded-lg">
             <FileText className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">
