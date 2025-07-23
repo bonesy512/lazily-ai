@@ -19,10 +19,11 @@ export const trecFieldMap = {
     knownAddress: 'Texas known as',
   },
 
-  // Section 5: Earnest Money
-  earnestMoney: {
+  // THE FIX IS HERE: Renamed 'earnestMoney' to 'price'
+  price: {
     amount: 'earnest money of',
-    titleCompany: 'insurance Title Policy issued by'
+    titleCompany: 'insurance Title Policy issued by',
+    salesPrice: 'undefined_6', // Added from our mapping session
   },
   
   // ... we will continue to add other fields here as we build the PDF generation logic
