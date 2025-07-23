@@ -85,7 +85,7 @@ function UserMenu() {
 function Header() {
   return (
     // THE FIX IS HERE: Changed z-50 to z-[100] to ensure it's on top of all other content
-    <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-100">
+    <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <Link href="/" className="flex items-center">
           <Image
