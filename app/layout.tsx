@@ -10,7 +10,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 export const metadata: Metadata = {
   title: {
     template: '%s | Lazily.AI', // Allows individual pages to set their own title
-    default: 'Lazily.AI - The Effortless Real Estate Deal Engine',
+    default: 'Lazily.AI - The Effortless Real Estate Contract Engine',
   },
   description: 'Lazily.ai uses AI to automate real estate investing. Find off-market leads, generate contracts, and close more deals with less effort.',
   openGraph: {
