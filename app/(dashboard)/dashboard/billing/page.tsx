@@ -2,14 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { customerPortalAction } from '@/lib/payments/actions';
+import { customerPortalAction, creditCheckoutAction } from '@/lib/payments/actions';
 import useSWR from 'swr';
 import { TeamDataWithMembers } from '@/lib/db/schema';
 import { Suspense } from "react";
+import { useFormStatus } from 'react-dom';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-// This component is re-used from the original dashboard page
 function ManageSubscription() {
   const { data: teamData } = useSWR<TeamDataWithMembers>('/api/team', fetcher);
 
@@ -42,8 +42,16 @@ function ManageSubscription() {
   );
 }
 
-// A simple card for each credit pack
-function CreditPack({ credits, price, discount }: { credits: number; price: number; discount: string }) {
+function PurchaseButton({ price }: { price: number }) {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? "Processing..." : `Purchase for $${price}`}
+    </Button>
+  );
+}
+
+function CreditPack({ credits, price, discount, priceId }: { credits: number; price: number; discount: string; priceId: string }) {
   return (
     <Card className="flex flex-col">
       <CardHeader>
@@ -51,9 +59,10 @@ function CreditPack({ credits, price, discount }: { credits: number; price: numb
         <CardDescription>{discount}</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow flex items-end">
-        <Button className="w-full">
-          Purchase for ${price}
-        </Button>
+        <form action={creditCheckoutAction} className="w-full">
+          <input type="hidden" name="priceId" value={priceId} />
+          <PurchaseButton price={price} />
+        </form>
       </CardContent>
     </Card>
   );
@@ -79,9 +88,9 @@ export default function BillingPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid md:grid-cols-3 gap-6">
-            <CreditPack credits={20} price={90} discount="10% Discount" />
-            <CreditPack credits={50} price={185} discount="25% Discount" />
-            <CreditPack credits={100} price={335} discount="33% Discount" />
+            <CreditPack credits={20} price={90} discount="10% Discount" priceId="price_1Ro7OYPnNiwcL8wH91lgBFm1" />
+            <CreditPack credits={50} price={185} discount="25% Discount" priceId="price_1Ro7a1PnNiwcL8wH0Ok54dwB" />
+            <CreditPack credits={100} price={335} discount="33% Discount" priceId="price_1Ro7aKPnNiwcL8wHErefGhbq" />
           </CardContent>
         </Card>
       </div>
