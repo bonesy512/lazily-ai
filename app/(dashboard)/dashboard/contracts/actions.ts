@@ -35,19 +35,14 @@ export async function generateContractAction(propertyId: number) {
   const pdfDoc = await PDFDocument.load(pdfTemplateBytes);
   const form = pdfDoc.getForm();
 
-  // Use the map to fill fields
-  form.getTextField(trecFieldMap.parties.seller).setText('SELLER_NAME_PLACEHOLDER'); // Replace with actual seller data if available
+  // Use the map to fill fields based on our mapping session
+  // NOTE: This is a sample, we will expand this with all mapped fields
+  form.getTextField(trecFieldMap.parties.seller).setText('SELLER_NAME_PLACEHOLDER'); // Example placeholder
   form.getTextField(trecFieldMap.parties.buyer).setText(propertyData.owner.fullName || '');
-  form.getTextField(trecFieldMap.property.lot).setText(propertyData.lot || ''); // Assuming 'lot' exists on propertyData
-  form.getTextField(trecFieldMap.property.block).setText(propertyData.block || ''); // Assuming 'block' exists
-  form.getTextField(trecFieldMap.property.addition).setText(propertyData.addition || ''); // Assuming 'addition' exists
-  form.getTextField(trecFieldMap.property.county).setText(propertyData.county || ''); // Assuming 'county' exists
   form.getTextField(trecFieldMap.property.knownAddress).setText(`${propertyData.streetAddress}, ${propertyData.city}, TX ${propertyData.zipCode}`);
   
-  // Example for a price field
   const offerPrice = parseFloat(propertyData.offerPrice || '0');
   form.getTextField(trecFieldMap.price.salesPrice).setText(offerPrice.toString());
-
 
   // Flatten the form to make it non-editable
   form.flatten();

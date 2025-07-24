@@ -110,17 +110,17 @@ export default function ContractsPage() {
             Properties you've uploaded will appear here.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-            {error && <div>Failed to load properties.</div>}
-            {!properties && !error && <div>Loading properties...</div>}
+        <CardContent className="p-0">
+            {error && <div className="p-4">Failed to load properties.</div>}
+            {!properties && !error && <div className="p-4">Loading properties...</div>}
             {properties && properties.length === 0 && (
-                <div className="flex flex-col items-center justify-center text-center py-12 border-2 border-dashed border-border rounded-lg">
+                <div className="flex flex-col items-center justify-center text-center py-12 border-t">
                     <FileText className="h-12 w-12 text-muted-foreground mb-4" />
                     <h3 className="text-lg font-semibold text-foreground mb-2">
                     No properties uploaded yet
                     </h3>
                     <p className="text-sm text-muted-foreground max-w-sm">
-                    Upload a CSV file to begin generating your contracts.
+                    Upload a CSV file to see your properties here.
                     </p>
                 </div>
             )}
