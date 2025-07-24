@@ -55,12 +55,8 @@ export const properties = pgTable('properties', {
   streetAddress: varchar('street_address', { length: 255 }),
   city: varchar('city', { length: 100 }),
   zipCode: varchar('zip_code', { length: 20 }),
-  lot: varchar('lot', { length: 100 }),             // <-- ADD THIS LINE
-  block: varchar('block', { length: 100 }),           // <-- ADD THIS LINE
-  addition: varchar('addition', { length: 255 }),     // <-- ADD THIS LINE
-  county: varchar('county', { length: 100 }),         // <-- ADD THIS LINE
   offerPrice: varchar('offer_price', { length: 50 }),
-  status: varchar('status', { length: 50 }).default('pending'),
+  status: varchar('status', { length: 50 }).default('pending'), // e.g., 'pending', 'generated', 'error'
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
@@ -72,6 +68,16 @@ export const contracts = pgTable('contracts', {
   propertyId: integer('property_id').references(() => properties.id),
   generatedAt: timestamp('generated_at').notNull().defaultNow(),
   filePath: text('file_path'), // To store the location of the generated PDF
+});
+
+// NEW TABLE to track credit purchases for idempotency
+export const creditPurchases = pgTable('credit_purchases', {
+    id: serial('id').primaryKey(),
+    teamId: integer('team_id').notNull().references(() => teams.id),
+    creditsPurchased: integer('credits_purchased').notNull(),
+    amountPaid: integer('amount_paid'), // in cents
+    stripeCheckoutSessionId: text('stripe_checkout_session_id').notNull().unique(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
 export const teamMembers = pgTable('team_members', {
@@ -110,6 +116,7 @@ export const teamsRelations = relations(teams, ({ many }) => ({
   properties: many(properties),
   owners: many(owners),
   contracts: many(contracts),
+  creditPurchases: many(creditPurchases),
 }));
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -133,6 +140,13 @@ export const contractsRelations = relations(contracts, ({ one }) => ({
   team: one(teams, { fields: [contracts.teamId], references: [teams.id] }),
   user: one(users, { fields: [contracts.userId], references: [users.id] }),
   property: one(properties, { fields: [contracts.propertyId], references: [properties.id] }),
+}));
+
+export const creditPurchasesRelations = relations(creditPurchases, ({ one }) => ({
+    team: one(teams, {
+      fields: [creditPurchases.teamId],
+      references: [teams.id],
+    }),
 }));
 
 export const invitationsRelations = relations(invitations, ({ one }) => ({
@@ -162,6 +176,8 @@ export type Owner = typeof owners.$inferSelect;
 export type NewOwner = typeof owners.$inferInsert;
 export type Contract = typeof contracts.$inferSelect;
 export type NewContract = typeof contracts.$inferInsert;
+export type CreditPurchase = typeof creditPurchases.$inferSelect;
+export type NewCreditPurchase = typeof creditPurchases.$inferInsert;
 export type TeamMember = typeof teamMembers.$inferSelect;
 export type NewTeamMember = typeof teamMembers.$inferInsert;
 export type ActivityLog = typeof activityLogs.$inferSelect;
