@@ -6,21 +6,22 @@ import { SWRConfig } from 'swr';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
-// Enhanced Metadata for Lazily.AI brand, SEO, and Social Sharing
+// --- SEO OPTIMIZED METADATA ---
+// This section has been updated to align with the SEO strategy.
 export const metadata: Metadata = {
   title: {
-    template: '%s | Lazily.AI', // Allows individual pages to set their own title
-    default: 'Lazily.AI - The Effortless Real Estate Contract Engine',
+    template: '%s | Lazily.AI',
+    default: 'Lazily.ai: The Effortless TREC Contract Engine', // Optimized Title
   },
-  description: 'Lazily.ai uses AI to automate real estate investing. Find off-market leads, generate contracts, and close more deals with less effort.',
+  description: 'Stop spending hours on paperwork. Lazily.ai uses AI to generate hundreds of compliant TREC 1-4 contracts from a single CSV. Effortlessly Done.', // Optimized Description
   openGraph: {
-    title: 'Lazily.AI - The Effortless Real Estate Contract Engine',
-    description: 'Stop grinding. Start closing deals lazily with AI-powered lead generation and contract automation.',
+    title: 'Lazily.ai: The Effortless TREC Contract Engine', // Consistent OG Title
+    description: 'Stop spending hours on paperwork. Lazily.ai uses AI to generate hundreds of compliant TREC 1-4 contracts from a single CSV. Effortlessly Done.', // Consistent OG Description
     url: 'https://lazily.ai',
     siteName: 'Lazily.AI',
     images: [
       {
-        url: 'https://lazily.ai/og-image.png', // Must create and place this image in /public
+        url: 'https://lazily.ai/og-image.png',
         width: 1200,
         height: 630,
       },
@@ -30,9 +31,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Lazily.AI - The Effortless Real Estate Contract Engine',
-    description: 'Stop grinding. Start closing deals lazily with AI-powered lead generation and contract automation.',
-    images: ['https://lazily.ai/twitter-image.png'], // Must create and place this image in /public
+    title: 'Lazily.ai: The Effortless TREC Contract Engine', // Consistent Twitter Title
+    description: 'Stop spending hours on paperwork. Lazily.ai uses AI to generate hundreds of compliant TREC 1-4 contracts from a single CSV. Effortlessly Done.', // Consistent Twitter Description
+    images: ['https://lazily.ai/twitter-image.png'],
   },
 };
 
