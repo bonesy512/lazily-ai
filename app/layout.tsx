@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   },
   description: 'Lazily.ai uses AI to automate real estate investing. Find off-market leads, generate contracts, and close more deals with less effort.',
   openGraph: {
-    title: 'Lazily.AI - The Effortless Real Estate Deal Engine',
+    title: 'Lazily.AI - The Effortless Real Estate Contract Engine',
     description: 'Stop grinding. Start closing deals lazily with AI-powered lead generation and contract automation.',
     url: 'https://lazily.ai',
     siteName: 'Lazily.AI',
