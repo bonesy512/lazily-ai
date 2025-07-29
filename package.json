@@ -25,6 +25,7 @@
     "dotenv": "^16.5.0",
     "drizzle-kit": "^0.31.1",
     "drizzle-orm": "^0.43.1",
+    "gray-matter": "^4.0.3",
     "jose": "^6.0.11",
     "lucide-react": "^0.511.0",
     "next": "15.4.4",
