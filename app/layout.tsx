@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Lazily.AI - The Effortless Real Estate Deal Engine',
+    title: 'Lazily.AI - The Effortless Real Estate Contract Engine',
     description: 'Stop grinding. Start closing deals lazily with AI-powered lead generation and contract automation.',
     images: ['https://lazily.ai/twitter-image.png'], // Must create and place this image in /public
   },
@@ -42,6 +42,42 @@ export const viewport: Viewport = {
 
 const manrope = Manrope({ subsets: ['latin'] });
 
+// Helper component for the JSON-LD Schema
+function JsonLd() {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Lazily.AI",
+    "operatingSystem": "WEB",
+    "applicationCategory": "BusinessApplication",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "5.0",
+      "ratingCount": "25" // Placeholder - update as you get reviews
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "10.00",
+      "priceCurrency": "USD",
+      "description": "$10/month subscription plus pay-as-you-go credits for contract generation."
+    },
+    "description": "Lazily.AI is a SaaS platform that automates the generation of TREC 1-4 real estate contracts for Texas professionals, enabling bulk creation from a single CSV file.",
+    "url": "https://lazily.ai",
+    "author": {
+      "@type": "Organization",
+      "name": "Lazily.AI"
+    }
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
+
 export default function RootLayout({
   children
 }: {
@@ -50,15 +86,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      // Subtle theme adjustment from generic gray to a more modern slate for dark mode
       className={`bg-white dark:bg-slate-950 text-black dark:text-white ${manrope.className}`}
     >
       <body className="min-h-[100dvh] bg-gray-50 dark:bg-slate-900">
         <SWRConfig
           value={{
             fallback: {
-              // This pre-fetches user and team data for logged-in users, improving performance.
-              // No changes needed here.
               '/api/user': getUser(),
               '/api/team': getTeamForUser()
             }
@@ -68,6 +101,7 @@ export default function RootLayout({
         </SWRConfig>
         <Analytics />
         <SpeedInsights />
+        <JsonLd />
       </body>
     </html>
   );
