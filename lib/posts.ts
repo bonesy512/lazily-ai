@@ -4,26 +4,52 @@ import matter from 'gray-matter';
 
 const postsDirectory = path.join(process.cwd(), 'posts');
 
-function getPostSlugs() {
-  return fs.readdirSync(postsDirectory).map(fileName => fileName.replace(/\.mdx$/, ''));
-}
-
-export function getPostData(slug: string) {
-  const fullPath = path.join(postsDirectory, `${slug}.mdx`);
-  const fileContents = fs.readFileSync(fullPath, 'utf8');
-  const { data, content } = matter(fileContents);
-  return { slug, frontmatter: data, content };
-}
-
 export function getSortedPostsData() {
-  const slugs = getPostSlugs();
-  const allPosts = slugs
-    .map(slug => getPostData(slug))
-    .sort((post1, post2) => (post1.frontmatter.date > post2.frontmatter.date ? -1 : 1));
-  return allPosts;
+  const fileNames = fs.readdirSync(postsDirectory);
+  const allPostsData = fileNames.map((fileName) => {
+    // Corrected to handle .mdx extension
+    const slug = fileName.replace(/\.mdx$/, '');
+
+    const fullPath = path.join(postsDirectory, fileName);
+    const fileContents = fs.readFileSync(fullPath, 'utf8');
+    const matterResult = matter(fileContents);
+
+    return {
+      slug,
+      ...(matterResult.data as { date: string; title: string }),
+    };
+  });
+
+  return allPostsData.sort((a, b) => {
+    if (a.date < b.date) {
+      return 1;
+    } else {
+      return -1;
+    }
+  });
 }
 
 export function getAllPostSlugs() {
-  const slugs = getPostSlugs();
-  return slugs.map(slug => ({ params: { slug } }));
+  const fileNames = fs.readdirSync(postsDirectory);
+  return fileNames.map((fileName) => {
+    return {
+      params: {
+        // Corrected to handle .mdx extension
+        slug: fileName.replace(/\.mdx$/, ''),
+      },
+    };
+  });
+}
+
+export async function getPostData(slug: string) {
+  // Corrected to handle .mdx extension
+  const fullPath = path.join(postsDirectory, `${slug}.mdx`);
+  const fileContents = fs.readFileSync(fullPath, 'utf8');
+  const matterResult = matter(fileContents);
+
+  return {
+    slug,
+    content: matterResult.content,
+    ...(matterResult.data as { date: string; title: string }),
+  };
 }
