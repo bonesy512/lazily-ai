@@ -2,16 +2,21 @@ import { getPostData, getAllPostSlugs } from '@/lib/posts';
 import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 
+// Define the type for page props, correctly indicating params is a Promise
+type PageProps = {
+  params: Promise<{ slug: string }>;
+};
+
 export async function generateStaticParams() {
   const paths = getAllPostSlugs();
   return paths;
 }
 
-// Corrected: params type is Promise and is awaited
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+// Ensure generateMetadata is an async function and awaits both params and getPostData
+export async function generateMetadata({ params }: PageProps) {
   try {
     const { slug } = await params; // Await the params Promise
-    const post = getPostData(slug);
+    const post = await getPostData(slug); // Await the getPostData Promise
     return {
       title: post.frontmatter.title,
     };
@@ -22,12 +27,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
-// Corrected: params type is Promise and is awaited
-export default async function Post({ params }: { params: Promise<{ slug: string }> }) {
+// Ensure the Post component is an async function and awaits both params and getPostData
+export default async function Post({ params }: PageProps) {
   let post;
   try {
     const { slug } = await params; // Await the params Promise
-    post = getPostData(slug);
+    post = await getPostData(slug); // Await the getPostData Promise
   } catch (error) {
     notFound();
   }
