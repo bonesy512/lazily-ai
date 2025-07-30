@@ -1,30 +1,16 @@
-// app/api/properties/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { fetchProperties } from '@/lib/data';
+import { Property } from '@/lib/definitions';
 
-import { NextResponse } from 'next/server';
-import { db } from '@/lib/db/drizzle';
-import { getTeamForUser } from '@/lib/db/queries';
-import { properties } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
-
-// The 'export' keyword here is the fix.
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const team = await getTeamForUser();
-    if (!team) {
-      return new NextResponse('Team not found', { status: 404 });
-    }
-
-    const teamProperties = await db.query.properties.findMany({
-      where: eq(properties.teamId, team.id),
-      with: {
-        owner: true,
-      },
-      orderBy: (properties, { desc }) => [desc(properties.createdAt)],
-    });
-    
-    return NextResponse.json(teamProperties);
+    const properties: Property[] = await fetchProperties();
+    return NextResponse.json(properties);
   } catch (error) {
-    console.error('Failed to fetch properties:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    console.error('Error fetching properties:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch properties' },
+      { status: 500 }
+    );
   }
 }
