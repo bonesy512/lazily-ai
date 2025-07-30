@@ -2,14 +2,19 @@ import { getPostData, getAllPostSlugs } from '@/lib/posts';
 import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 
+type PageProps = {
+  params: Promise<{ slug: string }>;
+};
+
 export async function generateStaticParams() {
   const paths = getAllPostSlugs();
   return paths;
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }) {
+export async function generateMetadata({ params }: PageProps) {
   try {
-    const post = getPostData(params.slug);
+    const { slug } = await params;
+    const post = getPostData(slug);
     return {
       title: post.frontmatter.title,
     };
@@ -20,10 +25,11 @@ export function generateMetadata({ params }: { params: { slug: string } }) {
   }
 }
 
-export default function Post({ params }: { params: { slug: string } }) {
+export default async function Post({ params }: PageProps) {
   let post;
   try {
-    post = getPostData(params.slug);
+    const { slug } = await params;
+    post = getPostData(slug);
   } catch (error) {
     notFound();
   }
