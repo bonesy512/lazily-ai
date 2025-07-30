@@ -21,18 +21,26 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 function UserMenu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { data: user } = useSWR<User>('/api/user', fetcher);
-  const router = useRouter();
+  const { data: user } = useSWR<User>('/api/user', fetcher); // `useSWR` is typically for client-side data fetching [1]
+  const router = useRouter(); // `useRouter` is a Client Component hook in the App Router [2, 3]
 
   async function handleSignOut() {
-    await signOut();
+    await signOut(); // This function likely performs data mutation via a Server Action [4]
     mutate('/api/user');
-    router.push('/');
+    router.push('/'); // `router.push` enables client-side navigation [3]
   }
 
   if (!user) {
+    // Links displayed for unauthenticated users
     return (
       <>
+        {/* NEW: Articles link added here */}
+        <Link
+          href="/articles"
+          className="text-sm font-medium text-foreground/80 hover:text-foreground"
+        >
+          Articles
+        </Link>
         <Link
           href="/pricing"
           className="text-sm font-medium text-foreground/80 hover:text-foreground"
@@ -49,6 +57,7 @@ function UserMenu() {
     );
   }
 
+  // Dropdown menu for authenticated users
   return (
     <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
       <DropdownMenuTrigger>
@@ -57,7 +66,7 @@ function UserMenu() {
           <AvatarFallback>
             {user.email
               .split(' ')
-              .map((n) => n[0])
+              .map((n) => n)
               .join('')}
           </AvatarFallback>
         </Avatar>
