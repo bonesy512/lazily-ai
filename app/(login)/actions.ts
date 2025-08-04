@@ -248,6 +248,11 @@ export const removeTeamMember = validatedActionWithUser(
     if (!userWithTeam?.teamId) {
       return { error: 'User is not part of a team' };
     }
+
+    if (userWithTeam.role !== 'owner') {
+      return { error: 'You do not have permission to remove team members.' };
+    }
+
     await db.delete(teamMembers).where(and(eq(teamMembers.id, memberId), eq(teamMembers.teamId, userWithTeam.teamId)));
     await logActivity(userWithTeam.teamId, user.id, ActivityType.REMOVE_TEAM_MEMBER);
     return { success: 'Team member removed successfully' };
@@ -281,6 +286,8 @@ export const inviteTeamMember = validatedActionWithUser(
   }
 );
 
+import { propertySchema } from '@/lib/properties/validation';
+
 const processCsvSchema = z.object({
   csvFile: z.any(),
 });
@@ -310,6 +317,27 @@ export const processCsvFile = validatedActionWithUser(
     if (team.contractCredits < requiredCredits) {
       return { error: `You do not have enough credits. This upload requires ${requiredCredits} credits, but you only have ${team.contractCredits}.` };
     }
+
+    const validationErrors: string[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i] as any;
+      const result = propertySchema.safeParse({
+        streetAddress: row.StreetAddress,
+        city: row.City,
+        zipCode: row.ZipCode,
+        offerPrice: row.OfferPrice,
+        ownerId: 1, // Dummy data for validation
+        teamId: 1, // Dummy data for validation
+      });
+      if (!result.success) {
+        validationErrors.push(`Row ${i + 2}: ${result.error.errors.map((e) => e.message).join(', ')}`);
+      }
+    }
+
+    if (validationErrors.length > 0) {
+      return { error: 'Validation failed:', validationErrors };
+    }
+
     try {
       for (const row of rows) {
         const { StreetAddress, City, ZipCode, OwnerName, MailingAddress, OfferPrice } = row as any;
@@ -321,7 +349,12 @@ export const processCsvFile = validatedActionWithUser(
       return { success: `Successfully processed ${requiredCredits} properties. Your new credit balance is ${newCreditTotal}.` };
     } catch (e: any) {
       console.error("CSV Processing Error:", e);
-      return { error: 'An error occurred while processing the file. Please check your CSV column names match the required format.' };
+      if (e.code === '23505') { // Unique constraint violation
+        return { error: 'A database error occurred: a record with this information already exists.' };
+      } else if (e.code) { // Other database-related error
+        return { error: `A database error occurred (Code: ${e.code}). Please contact support.` };
+      }
+      return { error: 'An unexpected error occurred while processing the file. Please check your CSV column names and data format.' };
     }
   }
 );
