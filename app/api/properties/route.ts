@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchProperties } from '@/lib/data';
-import { Property } from '@/lib/definitions';
+import { fetchProperties } from '@/lib/properties/queries';
+import { Property } from '@/lib/properties/definitions';
 
 export async function GET(request: NextRequest) {
   try {

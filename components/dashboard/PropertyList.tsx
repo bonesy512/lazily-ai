@@ -1,14 +1,7 @@
-'use client';
-
-import useSWR from 'swr';
 import { fetchProperties } from '@/lib/properties/queries';
-import { Property } from '@/lib/definitions';
 
-export function PropertyList() {
-  const { data: properties, error } = useSWR<Property[]>('/api/properties', fetchProperties);
-
-  if (error) return <div>Failed to load properties.</div>;
-  if (!properties) return <div>Loading...</div>;
+export async function PropertyList() {
+  const properties = await fetchProperties();
 
   return (
     <div className="mt-8">
@@ -20,7 +13,9 @@ export function PropertyList() {
           {properties.map((property) => (
             <li key={property.id} className="p-4 border rounded-lg">
               <p className="font-bold">{property.address}</p>
-              <p>{property.city}, {property.state} {property.zip}</p>
+              <p>
+                {property.city}, {property.state} {property.zip}
+              </p>
               <p>Price: ${property.price}</p>
             </li>
           ))}

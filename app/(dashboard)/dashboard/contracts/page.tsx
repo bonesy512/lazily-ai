@@ -1,11 +1,9 @@
-'use client';
-
 import { CsvUploadForm } from '@/components/dashboard/CsvUploadForm';
 import { PropertyList } from '@/components/dashboard/PropertyList';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditsCounter } from "@/components/dashboard/CreditsCounter";
 
-export default function ContractsPage() {
+export default async function ContractsPage() {
   return (
     <section className="space-y-6">
       <div className="grid gap-4 md:grid-cols-4">

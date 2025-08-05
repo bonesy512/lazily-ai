@@ -5,9 +5,10 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { processCsvFile } from '@/app/(login)/actions';
+import { ActionState } from '@/lib/auth/middleware';
 
 export function CsvUploadForm() {
-  const [state, formAction, isPending] = useActionState(processCsvFile, {});
+  const [state, formAction, isPending] = useActionState<ActionState>(processCsvFile, { error: '', validationErrors: [] });
 
   return (
     <form action={formAction} className="space-y-4">

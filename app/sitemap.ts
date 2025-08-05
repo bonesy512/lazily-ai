@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { getSortedPostsData } from '@/lib/posts';
+import { getSortedPostsData } from '@/lib/content/posts';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl = 'https://lazily.ai';

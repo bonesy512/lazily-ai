@@ -7,7 +7,7 @@ import path from 'path';
 async function getPdfFieldNames() {
   try {
     console.log('Loading PDF template...');
-    const templatePath = path.join(process.cwd(), 'lib/templates/TREC-1-4.pdf');
+    const templatePath = path.join(process.cwd(), 'lib/templates/TREC-20-18-automated-v1.pdf');
     const pdfTemplateBytes = await fs.readFile(templatePath);
 
     const pdfDoc = await PDFDocument.load(pdfTemplateBytes);

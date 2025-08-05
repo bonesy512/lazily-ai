@@ -1,4 +1,4 @@
-import { getPostData, getAllPostSlugs } from '@/lib/posts';
+import { getPostData, getAllPostSlugs } from '@/lib/content/posts';
 import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 
