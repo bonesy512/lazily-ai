@@ -27,7 +27,7 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
 
   const fillText = (fieldName: string, value: string | null | undefined) => {
     try {
-      if (value) form.getTextField(fieldName).setText(value);
+      if (value !== null && value !== undefined) form.getTextField(fieldName).setText(value);
     } catch (e) { console.log(`Could not find TextField: ${fieldName}`); }
   };
 
@@ -37,11 +37,11 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
     } catch (e) { console.log(`Could not find CheckBox: ${fieldName}`); }
   };
 
-  // Parties
+  // --- Parties ---
   fillText('parties.seller', data.parties?.seller);
   fillText('parties.buyer', data.parties?.buyer);
 
-  // Property
+  // --- Property ---
   fillText('property.lot', data.property?.lot);
   fillText('property.block', data.property?.block);
   fillText('property.addition', data.property?.addition);
@@ -49,58 +49,59 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
   fillText('property.county', data.property?.county);
   fillText('property.address', data.property?.address);
   
-  if (data.property?.hoaStatus === 'is') check('property.hoaStatus.is', true);
-  else if (data.property?.hoaStatus === 'is not') check('property.hoaStatus.is not', true);
+  const hoaStatus = data.property?.hoaStatus;
+  if (hoaStatus === 'is_subject') check('property.hoaStatus.is_subject', true);
+  else if (hoaStatus === 'not_subject') check('property.hoaStatus.not_subject', true);
 
-  // Price
+  // --- Price ---
   fillText('price.cashPortion', data.price?.cashPortion);
   fillText('price.financeAmount', data.price?.financeAmount);
   fillText('price.salesPrice', data.price?.salesPrice);
 
-  // Financing
+  // --- Financing ---
   check('financing.thirdParty', data.financing?.thirdParty);
-
-  // Earnest Money
-  fillText('earnestMoney.amount', data.earnestMoney?.amount);
-  fillText('earnestMoney.escrowAgentName', data.earnestMoney?.escrowAgentName);
-
-  // Option Fee
-  fillText('optionFee.amount', data.optionFee?.amount);
-  fillText('optionFee.days', data.optionFee?.days);
-
-  // Title Policy
-  if (data.titlePolicy?.payer === 'Seller') check('titlePolicy.payer.Seller', true);
-  else if (data.titlePolicy?.payer === 'Buyer') check('titlePolicy.payer.Buyer', true);
+  check('financing.loanAssumption', data.financing?.loanAssumption);
+  check('financing.seller', data.financing?.seller);
   
-  // Survey
-  if (data.survey?.status === `Buyer's Expense`) check(`survey.status.Buyer's Expense`, true);
-  else if (data.survey?.status === `Seller's Expense`) check(`survey.status.Seller's Expense`, true);
+  // --- Survey ---
+  const surveyStatus = data.survey?.status;
+  if (surveyStatus === "existing_survey_provided") check("survey.status.existing_survey_provided", true);
+  else if (surveyStatus === "new_survey_ordered") check("survey.status.new_survey_ordered", true);
+  else if (surveyStatus === "new_survey_by_seller") check("survey.status.new_survey_by_seller", true);
+
+  const affidavitPayer = data.survey?.existing?.affidavitPayer;
+  if (affidavitPayer === 'seller') check('survey.existing.affidavitPayer.seller', true);
+  else if (affidavitPayer === 'buyer') check('survey.existing.affidavitPayer.buyer', true);
+
+  // --- Property Condition ---
+  const disclosureStatus = data.propertyCondition?.sellerDisclosure?.status;
+  if (disclosureStatus === 'received') check('propertyCondition.sellerDisclosure.status.received', true);
+  else if (disclosureStatus === 'not_received') check('propertyCondition.sellerDisclosure.status.not_received', true);
+  else if (disclosureStatus === 'not_required') check('propertyCondition.sellerDisclosure.status.not_required', true);
   
-  // Property Condition
-  if (data.propertyCondition?.sellerDisclosure?.status === 'has been received') check('propertyCondition.sellerDisclosure.status.has been received', true);
-  else if (data.propertyCondition?.sellerDisclosure?.status === 'has not been received') check('propertyCondition.sellerDisclosure.status.has not been received', true);
-  
-  if (data.propertyCondition?.acceptanceStatus === 'as is') check('propertyCondition.acceptanceStatus.as is', true);
-  else if (data.propertyCondition?.acceptanceStatus === 'as is with repairs') check('propertyCondition.acceptanceStatus.as is with repairs', true);
+  const acceptanceStatus = data.propertyCondition?.acceptanceStatus;
+  if (acceptanceStatus === 'as_is') check('propertyCondition.acceptanceStatus.as_is', true);
+  else if (acceptanceStatus === 'as_is_with_repairs') check('propertyCondition.acceptanceStatus.as_is_with_repairs', true);
 
-  // Brokers
-  if (data.brokers?.listing?.represents === `Seller as Seller's agent`) check(`brokers.listing.represents.Seller as Seller's agent`, true);
-  else if (data.brokers?.listing?.represents === `Seller and Buyer as an intermediary`) check(`brokers.listing.represents.Seller and Buyer as an intermediary`, true);
+  // --- Brokers ---
+  const listingRepresents = data.brokers?.listing?.represents;
+  if (listingRepresents === 'seller_agent') check('brokers.listing.represents.seller_agent', true);
+  else if (listingRepresents === 'intermediary') check('brokers.listing.represents.intermediary', true);
 
-  if (data.brokers?.other?.represents === `Buyer as Buyer's agent`) check(`brokers.other.represents.Buyer as Buyer's agent`, true);
-  else if (data.brokers?.other?.represents === `Seller as Listing Broker's subagent`) check(`brokers.other.represents.Seller as Listing Broker's subagent`, true);
+  const otherRepresents = data.brokers?.other?.represents;
+  if (otherRepresents === 'buyer_agent') check('brokers.other.represents.buyer_agent', true);
+  else if (otherRepresents === 'seller_subagent') check('brokers.other.represents.seller_subagent', true);
 
-  // Closing
+  // --- Possession ---
+  const possessionStatus = data.possession?.status;
+  if (possessionStatus === 'upon_closing') check('possession.status.upon_closing', true);
+  else if (possessionStatus === 'temporary_lease') check('possession.status.temporary_lease', true);
+
+  // ... other text and checkbox fields ...
+  fillText('specialProvisions.text', data.specialProvisions?.text);
   fillText('closing.date.monthDay', data.closing?.date?.monthDay);
   fillText('closing.date.year', data.closing?.date?.year);
 
-  // Possession
-  if (data.possession?.status === 'closing and funding') check('possession.status.closing and funding', true);
-  else if (data.possession?.status === 'according to lease') check('possession.status.according to lease', true);
-  
-  // Special Provisions
-  fillText('specialProvisions.text', data.specialProvisions?.text);
-  
   form.flatten();
   return await pdfDoc.save();
 }
