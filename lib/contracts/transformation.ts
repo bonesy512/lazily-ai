@@ -2,107 +2,83 @@
 
 import { Trec14ContractData } from "./validation";
 
-/**
- * Converts a string representation of a boolean ('true', 'yes', '1') to a boolean type.
- * Case-insensitive. Returns false for any other value.
- * @param value The string value from the CSV.
- * @returns boolean
- */
 const toBoolean = (value: string | undefined | null): boolean => {
   if (!value) return false;
   const lowerCaseValue = value.toLowerCase();
   return lowerCaseValue === 'true' || lowerCaseValue === 'yes' || lowerCaseValue === '1';
 };
 
-/**
- * This is the crucial transformation function. It takes a flat row object from a parsed CSV
- * and maps it into the nested, structured Trec14ContractData object
- * that our application uses internally.
- *
- * @param row A single row from the CSV, where keys are the column headers.
- * @returns A structured Trec14ContractData object.
- */
 export const mapCsvRowToJson = (row: Record<string, string>): Trec14ContractData => {
+  const financingThirdParty = toBoolean(row.financing_thirdParty);
+  const financingLoanAssumption = toBoolean(row.financing_loanAssumption);
+  const financingSeller = toBoolean(row.financing_seller);
+
   return {
     parties: {
-      seller: row.Seller_Name || null,
-      buyer: row.Buyer_Name || null,
+      seller: row.parties_seller || null,
+      buyer: row.parties_buyer || null,
     },
     property: {
-      address: row.Property_Address || null,
-      city: row.Property_City || null,
-      county: row.Property_County || null,
-      lot: row.Property_Lot || null,
-      block: row.Property_Block || null,
-      addition: row.Property_Addition || null,
-      // Defaulting these values, can be expanded later
-      exclusions: { part1: null, part2: null },
+      lot: row.property_lot || null,
+      block: row.property_block || null,
+      addition: row.property_addition || null,
+      city: row.property_city || null,
+      county: row.property_county || null,
+      address: row.property_address || null,
+      exclusions: { part1: null, part2: null }, // Defaulting non-CSV fields
       hoaStatus: null,
-      requiredNotices: null,
     },
     price: {
-      salesPrice: row.Sales_Price || null,
-      cashPortion: row.Cash_Portion || null,
-      financeAmount: row.Finance_Amount || null,
+      cashPortion: row.price_cashPortion || null,
+      financeAmount: row.price_financeAmount || null,
+      salesPrice: row.price_salesPrice || null,
     },
     financing: {
-      thirdParty: toBoolean(row.Financing_Third_Party),
-      loanAssumption: false, // Defaulting
-      seller: false, // Defaulting
+      thirdParty: financingThirdParty,
+      loanAssumption: financingLoanAssumption,
+      seller: financingSeller,
     },
     earnestMoney: {
-      amount: row.Earnest_Money_Amount || null,
-      escrowAgentName: row.Escrow_Agent_Name || null,
-      // Defaulting these values
+      amount: row.earnestMoney_amount || null,
+      additionalAmount: row.earnestMoney_additionalAmount || null,
+      additionalAmountDays: row.earnestMoney_additionalAmountDays || null,
+      escrowAgentName: row.earnestMoney_escrowAgentName || null,
       escrowAgentAddress: { part1: null, part2: null },
-      additionalAmount: null,
-      additionalAmountDays: null,
     },
     optionFee: {
-      amount: row.Option_Fee_Amount || null,
-      days: row.Option_Period_Days || null,
+      amount: row.optionFee_amount || null,
+      days: row.optionFee_days || null,
     },
     titlePolicy: {
-      companyName: row.Title_Company_Name || null,
-      // Defaulting these values
+      companyName: row.titlePolicy_companyName || null,
       payer: null,
       shortageAmendment: { status: null, payer: null },
     },
+    specialProvisions: {
+      text: row.specialProvisions_text || null,
+    },
     closing: {
       date: {
-        monthDay: row.Closing_Date_MonthDay || null,
-        year: row.Closing_Date_Year || null,
+        monthDay: row.closing_date_monthDay || null,
+        year: row.closing_date_year || null,
       },
     },
-    specialProvisions: {
-      text: row.Special_Provisions || null,
-    },
     addenda: {
-      hoa: toBoolean(row.Addendum_HOA),
-      leadBasedPaint: toBoolean(row.Addendum_Lead_Based_Paint),
+      thirdPartyFinancing: toBoolean(row.addenda_thirdPartyFinancing),
+      sellerFinancing: toBoolean(row.addenda_sellerFinancing),
+      hoa: toBoolean(row.addenda_hoa),
+      buyersTemporaryLease: toBoolean(row.addenda_buyersTemporaryLease),
+      loanAssumption: toBoolean(row.addenda_loanAssumption),
+      saleOfOtherProperty: toBoolean(row.addenda_saleOfOtherProperty),
+      leadBasedPaint: toBoolean(row.addenda_leadBasedPaint),
       // Defaulting other addenda
-      thirdPartyFinancing: toBoolean(row.Financing_Third_Party),
-      sellerFinancing: false,
-      buyersTemporaryLease: false,
-      loanAssumption: false,
-      saleOfOtherProperty: false,
-      mineralReservation: false,
-      backupContract: false,
-      coastalAreaProperty: false,
-      hydrostaticTesting: false,
-      lenderAppraisalTermination: false,
-      environmentalAssessment: false,
-      sellersTemporaryLease: false,
-      shortSale: false,
-      seawardOfGulfWaterway: false,
-      propaneGasSystem: false,
-      residentialLeases: false,
-      fixtureLeases: false,
-      section1031Exchange: false,
-      improvementDistrict: false,
-      otherText: { p1: null },
+      mineralReservation: false, backupContract: false, coastalAreaProperty: false,
+      hydrostaticTesting: false, lenderAppraisalTermination: false, environmentalAssessment: false,
+      sellersTemporaryLease: false, shortSale: false, seawardOfGulfWaterway: false,
+      propaneGasSystem: false, residentialLeases: false, fixtureLeases: false,
+      section1031Exchange: false, improvementDistrict: false, otherText: { p1: null },
     },
-    // Defaulting other top-level sections for completeness
+    // Defaulting other sections not included in the comprehensive CSV for MVP
     leases: { isResidential: false, isFixture: false, isNaturalResource: false, naturalResourceTerminationDays: null, naturalResourceDeliveryStatus: 'will not be delivered' },
     survey: { status: null, existing: { deliveryDays: null, affidavitPayer: null }, new: { deliveryDays: null }, newBySeller: { deliveryDays: null } },
     objections: { prohibitedUseActivity: null, objectionDays: null },
