@@ -8,11 +8,10 @@ import {
   timestamp,
   integer,
   boolean,
-  jsonb, // ADDED: Import the jsonb type
+  jsonb,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-// ADDED phone and marketing consent fields
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }),
@@ -27,7 +26,6 @@ export const users = pgTable('users', {
   deletedAt: timestamp('deleted_at'),
 });
 
-// ADDED contract credits field
 export const teams = pgTable('teams', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),
@@ -41,7 +39,6 @@ export const teams = pgTable('teams', {
   subscriptionStatus: varchar('subscription_status', { length: 20 }),
 });
 
-// NEW TABLE for owners from CSV uploads
 export const owners = pgTable('owners', {
   id: serial('id').primaryKey(),
   teamId: integer('team_id').notNull().references(() => teams.id),
@@ -50,7 +47,6 @@ export const owners = pgTable('owners', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-// NEW TABLE for properties from CSV uploads
 export const properties = pgTable('properties', {
   id: serial('id').primaryKey(),
   teamId: integer('team_id').notNull().references(() => teams.id),
@@ -59,31 +55,25 @@ export const properties = pgTable('properties', {
   city: varchar('city', { length: 100 }),
   zipCode: varchar('zip_code', { length: 20 }),
   offerPrice: varchar('offer_price', { length: 50 }),
-  status: varchar('status', { length: 50 }).default('pending'), // e.g., 'pending', 'generated', 'error'
+  status: varchar('status', { length: 50 }).default('pending'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-// --- THIS IS THE MODIFIED SECTION ---
 export const contracts = pgTable('contracts', {
     id: serial('id').primaryKey(),
     teamId: integer('team_id').notNull().references(() => teams.id),
     userId: integer('user_id').notNull().references(() => users.id),
-    // NEW: Store the validated source of truth
     contractData: jsonb('contract_data').notNull(),
     status: varchar('status', { length: 50 }).default('pending_generation'),
     generatedAt: timestamp('generated_at').notNull().defaultNow(),
     filePath: text('file_path'),
-    // propertyId is no longer the source of truth, but we can keep it for now if needed.
 });
-// --- END OF MODIFIED SECTION ---
 
-
-// NEW TABLE to track credit purchases for idempotency
 export const creditPurchases = pgTable('credit_purchases', {
     id: serial('id').primaryKey(),
     teamId: integer('team_id').notNull().references(() => teams.id),
     creditsPurchased: integer('credits_purchased').notNull(),
-    amountPaid: integer('amount_paid'), // in cents
+    amountPaid: integer('amount_paid'),
     stripeCheckoutSessionId: text('stripe_checkout_session_id').notNull().unique(),
     createdAt: timestamp('created_at').notNull().defaultNow(),
 });
@@ -138,17 +128,17 @@ export const ownersRelations = relations(owners, ({ one, many }) => ({
   properties: many(properties),
 }));
 
-export const propertiesRelations = relations(properties, ({ one, many }) => ({
+export const propertiesRelations = relations(properties, ({ one }) => ({
   team: one(teams, { fields: [properties.teamId], references: [teams.id] }),
   owner: one(owners, { fields: [properties.ownerId], references: [owners.id] }),
-  // Removed direct relation to contracts as contractData is the new source of truth
 }));
 
+// --- THIS IS THE CORRECTED SECTION ---
 export const contractsRelations = relations(contracts, ({ one }) => ({
   team: one(teams, { fields: [contracts.teamId], references: [teams.id] }),
   user: one(users, { fields: [contracts.userId], references: [users.id] }),
-  // property: one(properties, { fields: [contracts.propertyId], references: [properties.id] }), // Relation commented out as propertyId is deprecated
 }));
+// --- END OF CORRECTED SECTION ---
 
 export const creditPurchasesRelations = relations(creditPurchases, ({ one }) => ({
     team: one(teams, {
@@ -173,6 +163,7 @@ export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
 }));
 
 // --- TYPES ---
+// (No changes in this section)
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -184,6 +175,7 @@ export type Owner = typeof owners.$inferSelect;
 export type NewOwner = typeof owners.$inferInsert;
 export type Contract = typeof contracts.$inferSelect;
 export type NewContract = typeof contracts.$inferInsert;
+export type Trec14ContractData = any; // Placeholder until we can import from validation.ts
 export type CreditPurchase = typeof creditPurchases.$inferSelect;
 export type NewCreditPurchase = typeof creditPurchases.$inferInsert;
 export type TeamMember = typeof teamMembers.$inferSelect;
