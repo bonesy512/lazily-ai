@@ -1,6 +1,8 @@
+// app/api/properties/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchProperties } from '@/lib/properties/queries';
-import { Property } from '@/lib/properties/definitions';
+import type { Property } from '@/lib/db/schema'; // CORRECTED IMPORT
 
 export async function GET(request: NextRequest) {
   try {
