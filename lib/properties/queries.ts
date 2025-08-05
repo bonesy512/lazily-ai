@@ -1,6 +1,7 @@
+// lib/properties/queries.ts
+
 import { db } from '../db/drizzle';
-import { properties } from '../db/schema';
-import { Property } from './definitions';
+import { properties, type Property } from '../db/schema'; // CORRECTED IMPORT
 
 export async function fetchProperties(): Promise<Property[]> {
   try {

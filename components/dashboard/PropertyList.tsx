@@ -1,22 +1,23 @@
+// components/dashboard/PropertyList.tsx
+
 import { fetchProperties } from '@/lib/properties/queries';
 
 export async function PropertyList() {
   const properties = await fetchProperties();
 
   return (
-    <div className="mt-8">
-      <h2 className="text-2xl font-bold">Properties</h2>
+    <div className="border-t">
       {properties.length === 0 ? (
-        <p>No properties found.</p>
+        <p className="p-4 text-sm text-muted-foreground">No properties found.</p>
       ) : (
-        <ul className="space-y-4">
+        <ul className="divide-y divide-border">
           {properties.map((property) => (
-            <li key={property.id} className="p-4 border rounded-lg">
-              <p className="font-bold">{property.address}</p>
-              <p>
-                {property.city}, {property.state} {property.zip}
+            <li key={property.id} className="p-4">
+              <p className="font-medium">{property.streetAddress}</p>
+              <p className="text-sm text-muted-foreground">
+                {property.city}, TX {property.zipCode}
               </p>
-              <p>Price: ${property.price}</p>
+              <p className="text-sm text-muted-foreground">Offer Price: ${property.offerPrice}</p>
             </li>
           ))}
         </ul>
