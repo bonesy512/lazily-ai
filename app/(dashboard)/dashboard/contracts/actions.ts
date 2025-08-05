@@ -13,17 +13,10 @@ import { Trec14ContractData } from '@/lib/contracts/validation';
 
 export async function generateContractAction(contractId: number): Promise<Uint8Array> {
   const user = await getUser();
-  if (!user) {
-    throw new Error('Not authenticated');
-  }
+  if (!user) throw new Error('Not authenticated');
 
-  const contract = await db.query.contracts.findFirst({
-    where: eq(contracts.id, contractId),
-  });
-
-  if (!contract) {
-    throw new Error('Contract not found.');
-  }
+  const contract = await db.query.contracts.findFirst({ where: eq(contracts.id, contractId) });
+  if (!contract) throw new Error('Contract not found.');
   
   const data = contract.contractData as Trec14ContractData;
 
@@ -32,59 +25,129 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
   const pdfDoc = await PDFDocument.load(pdfTemplateBytes);
   const form = pdfDoc.getForm();
 
-  // --- Comprehensive, Direct Field Mapping ---
+  // Exhaustive mapping from the JSON data to the PDF fields
+  const fillText = (fieldName: string | undefined, value: string | null | undefined) => {
+    if (fieldName && value) form.getTextField(fieldName).setText(value);
+  };
+
+  const check = (fieldName: string | undefined, value: boolean | null | undefined) => {
+    if (fieldName && value) form.getCheckBox(fieldName).check();
+  };
+
+  const select = (fieldName: string | undefined, value: string | null | undefined) => {
+      if (fieldName && value) form.getRadioGroup(fieldName).select(value);
+  }
 
   // Parties
-  form.getTextField('parties.seller').setText(data.parties?.seller || '');
-  form.getTextField('parties.buyer').setText(data.parties?.buyer || '');
-  
+  fillText('parties.seller', data.parties?.seller);
+  fillText('parties.buyer', data.parties?.buyer);
+
   // Property
-  form.getTextField('property.lot').setText(data.property?.lot || '');
-  form.getTextField('property.block').setText(data.property?.block || '');
-  form.getTextField('property.addition').setText(data.property?.addition || '');
-  form.getTextField('property.city').setText(data.property?.city || '');
-  form.getTextField('property.county').setText(data.property?.county || '');
-  form.getTextField('property.address').setText(data.property?.address || '');
+  fillText('property.lot', data.property?.lot);
+  fillText('property.block', data.property?.block);
+  fillText('property.addition', data.property?.addition);
+  fillText('property.city', data.property?.city);
+  fillText('property.county', data.property?.county);
+  fillText('property.address', data.property?.address);
+  fillText('property.exclusions.part1', data.property?.exclusions?.part1);
+  fillText('property.exclusions.part2', data.property?.exclusions?.part2);
+  select('property.hoaStatus', data.property?.hoaStatus);
 
   // Price
-  form.getTextField('price.cashPortion').setText(data.price?.cashPortion || '');
-  form.getTextField('price.financeAmount').setText(data.price?.financeAmount || '');
-  form.getTextField('price.salesPrice').setText(data.price?.salesPrice || '');
+  fillText('price.cashPortion', data.price?.cashPortion);
+  fillText('price.financeAmount', data.price?.financeAmount);
+  fillText('price.salesPrice', data.price?.salesPrice);
+
+  // Financing
+  check('financing.thirdParty', data.financing?.thirdParty);
+  check('financing.loanAssumption', data.financing?.loanAssumption);
+  check('financing.seller', data.financing?.seller);
   
-  // Financing Checkboxes
-  if (data.financing?.thirdParty) form.getCheckBox('financing.thirdParty').check();
-  if (data.financing?.loanAssumption) form.getCheckBox('financing.loanAssumption').check();
-  if (data.financing?.seller) form.getCheckBox('financing.seller').check();
+  // Leases
+  check('leases.isResidential', data.leases?.isResidential);
+  check('leases.isFixture', data.leases?.isFixture);
+  check('leases.isNaturalResource', data.leases?.isNaturalResource);
 
   // Earnest Money
-  form.getTextField('earnestMoney.amount').setText(data.earnestMoney?.amount || '');
-  form.getTextField('earnestMoney.additionalAmount').setText(data.earnestMoney?.additionalAmount || '');
-  form.getTextField('earnestMoney.additionalAmountDays').setText(data.earnestMoney?.additionalAmountDays || '');
-  form.getTextField('earnestMoney.escrowAgentName').setText(data.earnestMoney?.escrowAgentName || '');
-  
+  fillText('earnestMoney.escrowAgentName', data.earnestMoney?.escrowAgentName);
+  fillText('earnestMoney.escrowAgentAddress.part1', data.earnestMoney?.escrowAgentAddress?.part1);
+  fillText('earnestMoney.amount', data.earnestMoney?.amount);
+  fillText('earnestMoney.additionalAmount', data.earnestMoney?.additionalAmount);
+  fillText('earnestMoney.additionalAmountDays', data.earnestMoney?.additionalAmountDays);
+
   // Option Fee
-  form.getTextField('optionFee.amount').setText(data.optionFee?.amount || '');
-  form.getTextField('optionFee.days').setText(data.optionFee?.days || '');
+  fillText('optionFee.amount', data.optionFee?.amount);
+  fillText('optionFee.days', data.optionFee?.days);
 
   // Title Policy
-  form.getTextField('titlePolicy.companyName').setText(data.titlePolicy?.companyName || '');
+  fillText('titlePolicy.companyName', data.titlePolicy?.companyName);
+  select('titlePolicy.payer', data.titlePolicy?.payer);
+  select('titlePolicy.shortageAmendment.status', data.titlePolicy?.shortageAmendment?.status);
+  select('titlePolicy.shortageAmendment.payer', data.titlePolicy?.shortageAmendment?.payer);
 
-  // Special Provisions
-  form.getTextField('specialProvisions.text').setText(data.specialProvisions?.text || '');
+  // Survey
+  select('survey.status', data.survey?.status);
+  
+  // Objections
+  fillText('objections.objectionDays', data.objections?.objectionDays);
+
+  // Property Condition
+  select('propertyCondition.sellerDisclosure.status', data.propertyCondition?.sellerDisclosure?.status);
+  fillText('propertyCondition.sellerDisclosure.deliveryDays', data.propertyCondition?.sellerDisclosure?.deliveryDays);
+  select('propertyCondition.acceptanceStatus', data.propertyCondition?.acceptanceStatus);
+  fillText('propertyCondition.repairsList.part1', data.propertyCondition?.repairsList?.part1);
+  
+  // Brokers
+  fillText('brokers.listing.associate.name', data.brokers?.listing?.associate?.name);
+  fillText('brokers.listing.associate.licenseNo', data.brokers?.listing?.associate?.licenseNo);
+  fillText('brokers.listing.firmName', data.brokers?.listing?.firmName);
+  fillText('brokers.listing.firmLicenseNo', data.brokers?.listing?.firmLicenseNo);
+  fillText('brokers.other.associate.name', data.brokers?.other?.associate?.name);
+  fillText('brokers.other.associate.licenseNo', data.brokers?.other?.associate?.licenseNo);
+  fillText('brokers.other.firmName', data.brokers?.other?.firmName);
+  fillText('brokers.other.firmLicenseNo', data.brokers?.other?.firmLicenseNo);
 
   // Closing
-  form.getTextField('closing.date.monthDay').setText(data.closing?.date?.monthDay || '');
-  form.getTextField('closing.date.year').setText(data.closing?.date?.year || '');
+  fillText('closing.date.monthDay', data.closing?.date?.monthDay);
+  fillText('closing.date.year', data.closing?.date?.year);
+
+  // Possession
+  select('possession.status', data.possession?.status);
+
+  // Special Provisions
+  fillText('specialProvisions.text', data.specialProvisions?.text);
+
+  // Settlement
+  fillText('settlement.sellerContributionToOther.amount', data.settlement?.sellerContributionToOther?.amount);
   
-  // Addenda Checkboxes
-  if (data.addenda?.thirdPartyFinancing) form.getCheckBox('addenda.thirdPartyFinancing').check();
-  if (data.addenda?.sellerFinancing) form.getCheckBox('addenda.sellerFinancing').check();
-  if (data.addenda?.hoa) form.getCheckBox('addenda.hoa').check();
-  if (data.addenda?.buyersTemporaryLease) form.getCheckBox('addenda.buyersTemporaryLease').check();
-  if (data.addenda?.loanAssumption) form.getCheckBox('addenda.loanAssumption').check();
-  if (data.addenda?.saleOfOtherProperty) form.getCheckBox('addenda.saleOfOtherProperty').check();
-  if (data.addenda?.leadBasedPaint) form.getCheckBox('addenda.leadBasedPaint').check();
-  
+  // Notices
+  fillText('notices.buyer.contactInfo.part1', data.notices?.buyer?.contactInfo?.part1);
+  fillText('notices.seller.contactInfo.part1', data.notices?.seller?.contactInfo?.part1);
+
+  // Addenda
+  check('addenda.thirdPartyFinancing', data.addenda?.thirdPartyFinancing);
+  check('addenda.sellerFinancing', data.addenda?.sellerFinancing);
+  check('addenda.hoa', data.addenda?.hoa);
+  check('addenda.buyersTemporaryLease', data.addenda?.buyersTemporaryLease);
+  check('addenda.loanAssumption', data.addenda?.loanAssumption);
+  check('addenda.saleOfOtherProperty', data.addenda?.saleOfOtherProperty);
+  check('addenda.leadBasedPaint', data.addenda?.leadBasedPaint);
+  check('addenda.sellersTemporaryLease', data.addenda?.sellersTemporaryLease);
+  fillText('addenda.otherText.p1', data.addenda?.otherText?.p1);
+
+  // Attorneys
+  fillText('attorneys.buyer.name', data.attorneys?.buyer?.name);
+  fillText('attorneys.buyer.phone', data.attorneys?.buyer?.phone);
+  fillText('attorneys.buyer.email', data.attorneys?.buyer?.email);
+  fillText('attorneys.seller.name', data.attorneys?.seller?.name);
+  fillText('attorneys.seller.phone', data.attorneys?.seller?.phone);
+  fillText('attorneys.seller.email', data.attorneys?.seller?.email);
+
+  // Execution
+  fillText('execution.day', data.execution?.day);
+  fillText('execution.month', data.execution?.month);
+  fillText('execution.year', data.execution?.year);
+
   form.flatten();
   return await pdfDoc.save();
 }
