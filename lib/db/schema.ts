@@ -1,3 +1,5 @@
+// lib/db/schema.ts
+
 import {
   pgTable,
   serial,
@@ -5,7 +7,8 @@ import {
   text,
   timestamp,
   integer,
-  boolean, // Import the boolean type
+  boolean,
+  jsonb, // ADDED: Import the jsonb type
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -60,15 +63,20 @@ export const properties = pgTable('properties', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-// NEW TABLE to log every generated contract for billing
+// --- THIS IS THE MODIFIED SECTION ---
 export const contracts = pgTable('contracts', {
-  id: serial('id').primaryKey(),
-  teamId: integer('team_id').notNull().references(() => teams.id),
-  userId: integer('user_id').notNull().references(() => users.id),
-  propertyId: integer('property_id').references(() => properties.id),
-  generatedAt: timestamp('generated_at').notNull().defaultNow(),
-  filePath: text('file_path'), // To store the location of the generated PDF
+    id: serial('id').primaryKey(),
+    teamId: integer('team_id').notNull().references(() => teams.id),
+    userId: integer('user_id').notNull().references(() => users.id),
+    // NEW: Store the validated source of truth
+    contractData: jsonb('contract_data').notNull(),
+    status: varchar('status', { length: 50 }).default('pending_generation'),
+    generatedAt: timestamp('generated_at').notNull().defaultNow(),
+    filePath: text('file_path'),
+    // propertyId is no longer the source of truth, but we can keep it for now if needed.
 });
+// --- END OF MODIFIED SECTION ---
+
 
 // NEW TABLE to track credit purchases for idempotency
 export const creditPurchases = pgTable('credit_purchases', {
@@ -133,13 +141,13 @@ export const ownersRelations = relations(owners, ({ one, many }) => ({
 export const propertiesRelations = relations(properties, ({ one, many }) => ({
   team: one(teams, { fields: [properties.teamId], references: [teams.id] }),
   owner: one(owners, { fields: [properties.ownerId], references: [owners.id] }),
-  contracts: many(contracts),
+  // Removed direct relation to contracts as contractData is the new source of truth
 }));
 
 export const contractsRelations = relations(contracts, ({ one }) => ({
   team: one(teams, { fields: [contracts.teamId], references: [teams.id] }),
   user: one(users, { fields: [contracts.userId], references: [users.id] }),
-  property: one(properties, { fields: [contracts.propertyId], references: [properties.id] }),
+  // property: one(properties, { fields: [contracts.propertyId], references: [properties.id] }), // Relation commented out as propertyId is deprecated
 }));
 
 export const creditPurchasesRelations = relations(creditPurchases, ({ one }) => ({
