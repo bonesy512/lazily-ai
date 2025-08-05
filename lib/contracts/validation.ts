@@ -70,7 +70,7 @@ export const Trec14Schema = z.object({
       deliveryDays: z.string().optional().nullable(),
       affidavitPayer: z.enum(['Seller', 'Buyer']).optional().nullable(),
     }),
-    new: z.object({
+    'new': z.object({
       deliveryDays: z.string().optional().nullable(),
     }),
     newBySeller: z.object({
