@@ -1,0 +1,236 @@
+{
+  "parties": {
+    "seller": "Seller Name(s)",
+    "buyer": "Buyer Name(s) and/or assigns"
+  },
+  "property": {
+    "lot": "Lot Number",
+    "block": "Block Number",
+    "addition": "Addition Name",
+    "city": "City",
+    "county": "County",
+    "address": "123 Main St, Austin, TX 78701",
+    "exclusions": {
+      "part1": "List any items to be excluded from the sale.",
+      "part2": ""
+    },
+    "hoaStatus": "is",
+    "requiredNotices": "List of required notices, if any."
+  },
+  "price": {
+    "cashPortion": "50000.00",
+    "financeAmount": "250000.00",
+    "salesPrice": "300000.00"
+  },
+  "financing": {
+    "thirdParty": true,
+    "loanAssumption": false,
+    "seller": false
+  },
+  "leases": {
+    "isResidential": false,
+    "isFixture": false,
+    "isNaturalResource": false,
+    "naturalResourceTerminationDays": "",
+    "naturalResourceDeliveryStatus": "will not be delivered"
+  },
+  "earnestMoney": {
+    "escrowAgentName": "Title Company Name",
+    "escrowAgentAddress": {
+      "part1": "123 Title Company Lane",
+      "part2": "Austin, TX 78704"
+    },
+    "amount": "3000.00",
+    "additionalAmount": "0.00",
+    "additionalAmountDays": ""
+  },
+  "optionFee": {
+    "amount": "250.00",
+    "days": "10"
+  },
+  "titlePolicy": {
+    "companyName": "Title Company Name",
+    "payer": "Seller",
+    "shortageAmendment": {
+      "status": "shall be amended",
+      "payer": "Buyer"
+    }
+  },
+  "survey": {
+    "status": "Buyer's Expense",
+    "existing": {
+      "deliveryDays": "",
+      "affidavitPayer": ""
+    },
+    "new": {
+      "deliveryDays": ""
+    },
+    "newBySeller": {
+      "deliveryDays": ""
+    }
+  },
+  "objections": {
+    "prohibitedUseActivity": "None",
+    "objectionDays": "10"
+  },
+  "propertyCondition": {
+    "sellerDisclosure": {
+      "status": "has been received",
+      "deliveryDays": ""
+    },
+    "acceptanceStatus": "as is",
+    "repairsList": {
+      "part1": "",
+      "part2": ""
+    }
+  },
+  "serviceContract": {
+    "maxCost": "500.00"
+  },
+  "brokers": {
+    "listing": {
+      "associate": {
+        "name": "Listing Agent Name",
+        "licenseNo": "123456",
+        "teamName": "Listing Team",
+        "email": "listing.agent@example.com",
+        "phone": "512-555-1234"
+      },
+      "represents": "Seller as Seller's agent",
+      "firmName": "Listing Brokerage Firm",
+      "firmLicenseNo": "654321",
+      "supervisor": {
+        "name": "Listing Supervisor Name",
+        "licenseNo": "789012"
+      },
+      "address": {
+        "street": "456 Brokerage Blvd",
+        "city": "Austin",
+        "state": "TX",
+        "zip": "78701",
+        "phone": "512-555-5678"
+      }
+    },
+    "other": {
+      "firmName": "Other Brokerage Firm",
+      "firmLicenseNo": "112233",
+      "represents": "Buyer as Buyer's agent",
+      "associate": {
+        "name": "Buyer Agent Name",
+        "licenseNo": "445566",
+        "teamName": "Buyer Team",
+        "email": "buyer.agent@example.com",
+        "phone": "512-555-9876"
+      },
+      "supervisor": {
+        "name": "Buyer Supervisor Name",
+        "licenseNo": "778899"
+      },
+      "address": {
+        "street": "789 Client Way",
+        "city": "Austin",
+        "state": "TX",
+        "zip": "78704",
+        "phone": "512-555-4321"
+      }
+    },
+    "disclosure": {
+      "fee": {
+        "dollarAmount": "",
+        "percentage": "3.0",
+        "type": "percentage"
+      }
+    }
+  },
+  "closing": {
+    "date": {
+      "monthDay": "August 30",
+      "year": "2025"
+    }
+  },
+  "possession": {
+    "status": "closing and funding"
+  },
+  "specialProvisions": {
+    "text": "Buyer is a real estate investor and intends to assign this contract to another buyer. Seller acknowledges this intent."
+  },
+  "settlement": {
+    "sellerContributionToBrokerage": {
+      "type": "dollarAmount",
+      "dollarAmount": "0.00",
+      "percentage": ""
+    },
+    "sellerContributionToOther": {
+      "amount": "0.00"
+    }
+  },
+  "notices": {
+    "buyer": {
+      "contactInfo": {
+        "part1": "Buyer Name",
+        "part2": "c/o Buyer's Agent"
+      },
+      "phone": "512-111-2222",
+      "emailFax": {
+        "1": "buyer@example.com",
+        "2": ""
+      }
+    },
+    "seller": {
+      "contactInfo": {
+        "part1": "Seller Name",
+        "part2": "c/o Seller's Agent"
+      },
+      "phone": "512-333-4444",
+      "emailFax": {
+        "1": "seller@example.com",
+        "2": ""
+      }
+    }
+  },
+  "addenda": {
+    "thirdPartyFinancing": true,
+    "sellerFinancing": false,
+    "hoa": true,
+    "buyersTemporaryLease": false,
+    "loanAssumption": false,
+    "saleOfOtherProperty": false,
+    "mineralReservation": false,
+    "backupContract": false,
+    "coastalAreaProperty": false,
+    "hydrostaticTesting": false,
+    "lenderAppraisalTermination": false,
+    "environmentalAssessment": false,
+    "sellersTemporaryLease": false,
+    "shortSale": false,
+    "seawardOfGulfWaterway": false,
+    "leadBasedPaint": true,
+    "propaneGasSystem": false,
+    "residentialLeases": false,
+    "fixtureLeases": false,
+    "section1031Exchange": false,
+    "improvementDistrict": false,
+    "otherText": {
+      "p1": ""
+    }
+  },
+  "attorneys": {
+    "buyer": {
+      "name": "",
+      "phone": "",
+      "fax": "",
+      "email": ""
+    },
+    "seller": {
+      "name": "",
+      "phone": "",
+      "fax": "",
+      "email": ""
+    }
+  },
+  "execution": {
+    "day": "5",
+    "month": "August",
+    "year": "2025"
+  }
+}
