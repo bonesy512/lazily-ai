@@ -1,9 +1,8 @@
 // components/dashboard/ContractList.tsx
 
 import { getContractsForUser } from '@/lib/db/queries';
-import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
-import { Trec14ContractData } from '@/lib/contracts/validation'; // Import our specific contract blueprint
+import { Trec14ContractData } from '@/lib/contracts/validation';
+import { DownloadContractButton } from './DownloadContractButton'; // Import the new button
 
 export async function ContractList() {
   const userContracts = await getContractsForUser();
@@ -15,7 +14,6 @@ export async function ContractList() {
       ) : (
         <ul className="divide-y divide-border">
           {userContracts.map((contract) => {
-            // Explicitly tell TypeScript the shape of our contractData object
             const data = contract.contractData as Trec14ContractData;
 
             return (
@@ -32,10 +30,11 @@ export async function ContractList() {
                   </p>
                 </div>
                 <div>
-                  <Button variant="outline" size="sm" disabled>
-                    <Download className="mr-2 h-4 w-4" />
-                    Download PDF
-                  </Button>
+                  {/* Use the new, functional button */}
+                  <DownloadContractButton 
+                    contractId={contract.id} 
+                    contractAddress={data.property?.address || null}
+                  />
                 </div>
               </li>
             );
