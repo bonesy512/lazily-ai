@@ -10,7 +10,7 @@ import { PDFDocument } from 'pdf-lib';
 import fs from 'fs/promises';
 import path from 'path';
 import { trecFieldMap } from '@/lib/mappings/trec1-4-mapping';
-import { Trec14ContractData } from '@/lib/contracts/validation'; // <--- THIS WAS THE MISSING LINE
+import { Trec14ContractData } from '@/lib/contracts/validation';
 
 export async function generateContractAction(contractId: number): Promise<Uint8Array> {
   const user = await getUser();
@@ -27,11 +27,11 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
     throw new Error('Contract not found.');
   }
   
-  // Safely cast the contractData to our known type
   const data = contract.contractData as Trec14ContractData;
 
   // --- PDF Generation Logic ---
-  const templatePath = path.join(process.cwd(), 'lib/templates/TREC-1-4.pdf');
+  // CORRECTED the filename to match the actual file in the project
+  const templatePath = path.join(process.cwd(), 'lib/templates/TREC-20-18-automated-v1.pdf');
   const pdfTemplateBytes = await fs.readFile(templatePath);
   const pdfDoc = await PDFDocument.load(pdfTemplateBytes);
   const form = pdfDoc.getForm();
@@ -53,6 +53,5 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
   form.flatten();
 
   const pdfBytes = await pdfDoc.save();
-  // Return the raw bytes of the PDF file
   return pdfBytes;
 }
