@@ -2,7 +2,10 @@
 
 import { desc, and, eq, isNull } from 'drizzle-orm';
 import { db } from './drizzle';
-import { activityLogs, teamMembers, teams, users, properties, type Property, contracts, type Contract } from './schema';
+// Import table objects (values)
+import { activityLogs, teamMembers, teams, users, contracts } from './schema';
+// Import TypeScript types separately for clarity
+import type { Contract } from './schema';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/auth/session';
 
@@ -128,18 +131,7 @@ export async function getTeamForUser() {
   return result?.team || null;
 }
 
-// NOTE: This function is now deprecated and unused, but we'll leave it for now.
-export async function fetchProperties(): Promise<Property[]> {
-    try {
-      const data = await db.select().from(properties);
-      return data;
-    } catch (error) {
-      console.error('Database Error:', error);
-      throw new Error('Failed to fetch properties.');
-    }
-}
-
-// --- NEW FUNCTION TO FETCH FROM THE CORRECT TABLE ---
+// Fetches from the correct 'contracts' table
 export async function getContractsForUser(): Promise<Contract[]> {
     const user = await getUser();
     if (!user) return [];
