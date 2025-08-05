@@ -1,3 +1,5 @@
+// components/dashboard/CsvUploadForm.tsx
+
 'use client';
 
 import { useActionState } from 'react';
@@ -8,8 +10,8 @@ import { processCsvFile } from '@/app/(login)/actions';
 import { ActionState } from '@/lib/auth/middleware';
 
 export function CsvUploadForm() {
-  const [state, formAction, isPending] = useActionState<ActionState>(processCsvFile, { error: '', validationErrors: [] });
-
+  const [state, formAction, isPending] = useActionState<ActionState>(processCsvFile as any, { error: '', validationErrors: [] });
+  
   return (
     <form action={formAction} className="space-y-4">
       <div>
