@@ -10,7 +10,7 @@ import { PDFDocument } from 'pdf-lib';
 import fs from 'fs/promises';
 import path from 'path';
 import { trecFieldMap } from '@/lib/mappings/trec1-4-mapping';
-import { Trec14ContractData } from '@/lib/contracts/validation';
+import { Trec14ContractData } from '@/lib/contracts/validation'; // <--- THIS WAS THE MISSING LINE
 
 export async function generateContractAction(contractId: number): Promise<Uint8Array> {
   const user = await getUser();
@@ -37,7 +37,6 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
   const form = pdfDoc.getForm();
 
   // Use the map to fill fields based on our data
-  // This is an expanded example; you can map all other fields in the same way
   form.getTextField(trecFieldMap.parties.seller).setText(data.parties?.seller || '');
   form.getTextField(trecFieldMap.parties.buyer).setText(data.parties?.buyer || '');
   
