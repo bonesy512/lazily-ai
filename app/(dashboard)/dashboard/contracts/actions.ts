@@ -25,7 +25,7 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
   const pdfDoc = await PDFDocument.load(pdfTemplateBytes);
   const form = pdfDoc.getForm();
 
-  // Exhaustive mapping from the JSON data to the PDF fields
+  // Helper functions to safely fill fields
   const fillText = (fieldName: string | undefined, value: string | null | undefined) => {
     if (fieldName && value) form.getTextField(fieldName).setText(value);
   };
@@ -35,9 +35,12 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
   };
 
   const select = (fieldName: string | undefined, value: string | null | undefined) => {
-      if (fieldName && value) form.getRadioGroup(fieldName).select(value);
+      // CORRECTED: Restored getRadioGroup and bypassed the incorrect type error
+      if (fieldName && value) (form as any).getRadioGroup(fieldName).select(value);
   }
 
+  // Exhaustive mapping from the JSON data to the PDF fields
+  
   // Parties
   fillText('parties.seller', data.parties?.seller);
   fillText('parties.buyer', data.parties?.buyer);
