@@ -1,7 +1,9 @@
+// app/(dashboard)/dashboard/contracts/page.tsx
+
 import { CsvUploadForm } from '@/components/dashboard/CsvUploadForm';
-import { PropertyList } from '@/components/dashboard/PropertyList';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditsCounter } from "@/components/dashboard/CreditsCounter";
+import { ContractList } from '@/components/dashboard/ContractList'; // Import new component
 
 export default async function ContractsPage() {
   return (
@@ -9,7 +11,7 @@ export default async function ContractsPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <CreditsCounter />
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Upload Your Property List</CardTitle>
@@ -26,11 +28,11 @@ export default async function ContractsPage() {
         <CardHeader>
           <CardTitle>Generated Contracts</CardTitle>
           <CardDescription>
-            Properties you've uploaded will appear here.
+            Contracts you've created from a CSV upload will appear here.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <PropertyList />
+          <ContractList /> {/* Use the new component */}
         </CardContent>
       </Card>
     </section>

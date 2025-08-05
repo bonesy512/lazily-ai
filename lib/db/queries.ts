@@ -1,6 +1,8 @@
+// lib/db/queries.ts
+
 import { desc, and, eq, isNull } from 'drizzle-orm';
 import { db } from './drizzle';
-import { activityLogs, teamMembers, teams, users } from './schema';
+import { activityLogs, teamMembers, teams, users, properties, type Property, contracts, type Contract } from './schema';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/auth/session';
 
@@ -28,7 +30,6 @@ export async function getUser() {
     .from(users)
     .where(and(eq(users.id, sessionData.user.id), isNull(users.deletedAt)))
     .limit(1);
-
   if (user.length === 0) {
     return null;
   }
@@ -42,7 +43,6 @@ export async function getTeamByStripeCustomerId(customerId: string) {
     .from(teams)
     .where(eq(teams.stripeCustomerId, customerId))
     .limit(1);
-
   return result.length > 0 ? result[0] : null;
 }
 
@@ -69,13 +69,12 @@ export async function getUserWithTeam(userId: number) {
     .select({
       user: users,
       teamId: teamMembers.teamId,
-      role: teamMembers.role, // Include the user's role
+      role: teamMembers.role,
     })
     .from(users)
     .leftJoin(teamMembers, eq(users.id, teamMembers.userId))
     .where(eq(users.id, userId))
     .limit(1);
-
   return result[0];
 }
 
@@ -126,6 +125,37 @@ export async function getTeamForUser() {
       }
     }
   });
-
   return result?.team || null;
+}
+
+// NOTE: This function is now deprecated and unused, but we'll leave it for now.
+export async function fetchProperties(): Promise<Property[]> {
+    try {
+      const data = await db.select().from(properties);
+      return data;
+    } catch (error) {
+      console.error('Database Error:', error);
+      throw new Error('Failed to fetch properties.');
+    }
+}
+
+// --- NEW FUNCTION TO FETCH FROM THE CORRECT TABLE ---
+export async function getContractsForUser(): Promise<Contract[]> {
+    const user = await getUser();
+    if (!user) return [];
+  
+    const userWithTeam = await getUserWithTeam(user.id);
+    if (!userWithTeam?.teamId) return [];
+  
+    try {
+      const data = await db
+        .select()
+        .from(contracts)
+        .where(eq(contracts.teamId, userWithTeam.teamId))
+        .orderBy(desc(contracts.generatedAt));
+      return data;
+    } catch (error) {
+      console.error('Database Error fetching contracts:', error);
+      throw new Error('Failed to fetch contracts.');
+    }
 }
