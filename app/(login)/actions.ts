@@ -1,7 +1,10 @@
+// app/(login)/actions.ts
+
 'use server';
 
 import { z } from 'zod';
 import { and, eq, sql } from 'drizzle-orm';
+import Papa from 'papaparse';
 import { db } from '@/lib/db/drizzle';
 import {
   User,
@@ -9,14 +12,14 @@ import {
   teams,
   teamMembers,
   activityLogs,
-  properties,
-  owners,
+  invitations,
+  contracts, // Import contracts table
   type NewUser,
   type NewTeam,
   type NewTeamMember,
   type NewActivityLog,
+  type Trec14ContractData, // Import the TS Type
   ActivityType,
-  invitations
 } from '@/lib/db/schema';
 import { comparePasswords, hashPassword, setSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
@@ -25,9 +28,15 @@ import { createCheckoutSession } from '@/lib/payments/stripe';
 import { getUser, getUserWithTeam } from '@/lib/db/queries';
 import {
   validatedAction,
-  validatedActionWithUser
+  validatedActionWithUser,
 } from '@/lib/auth/middleware';
-import Papa from 'papaparse';
+import { Trec14Schema } from '@/lib/contracts/validation'; // Import Zod Validator
+import { mapCsvRowToJson } from '@/lib/contracts/transformation'; // Import CSV Transformer
+
+// --- All other actions (signIn, signUp, signOut, etc.) remain unchanged ---
+// (The full file content is provided for safe replacement)
+
+// --- START: Existing Actions (No changes needed here) ---
 
 async function logActivity(
   teamId: number | null | undefined,
@@ -51,7 +60,6 @@ const signInSchema = z.object({
   email: z.string().email().min(3).max(255),
   password: z.string().min(8).max(100)
 });
-
 export const signIn = validatedAction(signInSchema, async (data, formData) => {
   const { email, password } = data;
   const userWithTeam = await db
@@ -66,6 +74,7 @@ export const signIn = validatedAction(signInSchema, async (data, formData) => {
   }
   const { user: foundUser, team: foundTeam } = userWithTeam[0];
   const isPasswordValid = await comparePasswords(password, foundUser.passwordHash);
+  
   if (!isPasswordValid) {
     return { error: 'Invalid email or password. Please try again.', email, password };
   }
@@ -86,7 +95,6 @@ const signUpSchema = z.object({
   password: z.string().min(8),
   inviteId: z.string().optional()
 });
-
 export const signUp = validatedAction(signUpSchema, async (data, formData) => {
   const { email, password, inviteId } = data;
   const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
@@ -149,7 +157,6 @@ const updatePasswordSchema = z.object({
   newPassword: z.string().min(8).max(100),
   confirmPassword: z.string().min(8).max(100)
 });
-
 export const updatePassword = validatedActionWithUser(
   updatePasswordSchema,
   async (data, _, user) => {
@@ -177,7 +184,6 @@ export const updatePassword = validatedActionWithUser(
 const deleteAccountSchema = z.object({
   password: z.string().min(8).max(100)
 });
-
 export const deleteAccount = validatedActionWithUser(
   deleteAccountSchema,
   async (data, _, user) => {
@@ -217,7 +223,6 @@ const updateAccountSchema = z.object({
   marketingEmailConsent: z.enum(['on', 'off']).optional(),
   marketingSmsConsent: z.enum(['on', 'off']).optional()
 });
-
 export const updateAccount = validatedActionWithUser(
   updateAccountSchema,
   async (data, _, user) => {
@@ -239,7 +244,6 @@ export const updateAccount = validatedActionWithUser(
 const removeTeamMemberSchema = z.object({
   memberId: z.coerce.number()
 });
-
 export const removeTeamMember = validatedActionWithUser(
   removeTeamMemberSchema,
   async (data, _, user) => {
@@ -248,11 +252,9 @@ export const removeTeamMember = validatedActionWithUser(
     if (!userWithTeam?.teamId) {
       return { error: 'User is not part of a team' };
     }
-
     if (userWithTeam.role !== 'owner') {
       return { error: 'You do not have permission to remove team members.' };
     }
-
     await db.delete(teamMembers).where(and(eq(teamMembers.id, memberId), eq(teamMembers.teamId, userWithTeam.teamId)));
     await logActivity(userWithTeam.teamId, user.id, ActivityType.REMOVE_TEAM_MEMBER);
     return { success: 'Team member removed successfully' };
@@ -263,7 +265,6 @@ const inviteTeamMemberSchema = z.object({
   email: z.string().email('Invalid email address'),
   role: z.enum(['member', 'owner'])
 });
-
 export const inviteTeamMember = validatedActionWithUser(
   inviteTeamMemberSchema,
   async (data, _, user) => {
@@ -285,76 +286,89 @@ export const inviteTeamMember = validatedActionWithUser(
     return { success: 'Invitation sent successfully' };
   }
 );
+// --- END: Existing Actions ---
 
-import { propertySchema } from '@/lib/properties/validation';
 
+// --- THIS IS THE NEW, REFACTORED ACTION ---
 const processCsvSchema = z.object({
-  csvFile: z.any(),
+  csvFile: z.any().refine(file => file?.size > 0, 'CSV file is required.'),
 });
 
 export const processCsvFile = validatedActionWithUser(
   processCsvSchema,
   async (data, formData, user) => {
     const file = formData.get('csvFile') as File;
-    if (!file || file.size === 0) {
-      return { error: 'No file was uploaded.' };
-    }
+
+    // 1. Authorization & Parsing
     const userWithTeam = await getUserWithTeam(user.id);
     if (!userWithTeam?.teamId) {
-      return { error: 'Could not find your team information.' };
+      return { error: 'Authentication error: Could not find your team information.' };
     }
     const team = await db.query.teams.findFirst({ where: eq(teams.id, userWithTeam.teamId) });
     if (!team) {
-      return { error: 'Could not load your team data.' };
+      return { error: 'Database error: Could not load your team data.' };
     }
+    
     const csvText = await file.text();
     const parsedCsv = Papa.parse(csvText, { header: true, skipEmptyLines: true });
-    const rows = parsedCsv.data;
-    const requiredCredits = rows.length;
-    if (requiredCredits === 0) {
-      return { error: 'The uploaded CSV file is empty or invalid.' };
+    const rows = parsedCsv.data as Record<string, string>[];
+
+    if (rows.length === 0) {
+      return { error: 'The uploaded CSV file has no data rows.' };
     }
+
+    // 2. Credit Check
+    const requiredCredits = rows.length;
     if (team.contractCredits < requiredCredits) {
       return { error: `You do not have enough credits. This upload requires ${requiredCredits} credits, but you only have ${team.contractCredits}.` };
     }
 
+    // 3. Iteration, Transformation, and Validation
     const validationErrors: string[] = [];
+    const validatedData: Trec14ContractData[] = [];
+
     for (let i = 0; i < rows.length; i++) {
-      const row = rows[i] as any;
-      const result = propertySchema.safeParse({
-        streetAddress: row.StreetAddress,
-        city: row.City,
-        zipCode: row.ZipCode,
-        offerPrice: row.OfferPrice,
-        ownerId: 1, // Dummy data for validation
-        teamId: 1, // Dummy data for validation
-      });
+      const row = rows[i];
+      const transformedJson = mapCsvRowToJson(row);
+      const result = Trec14Schema.safeParse(transformedJson);
+
       if (!result.success) {
-        validationErrors.push(`Row ${i + 2}: ${result.error.errors.map((e) => e.message).join(', ')}`);
+        // Format Zod errors for user-friendliness
+        const formattedErrors = result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+        validationErrors.push(`Row ${i + 2}: ${formattedErrors}`); // i + 2 accounts for header row and 0-index
+      } else {
+        validatedData.push(result.data);
       }
     }
 
+    // 4. Error Handling
     if (validationErrors.length > 0) {
-      return { error: 'Validation failed:', validationErrors };
+      return { error: 'Validation failed. Please correct the errors in your CSV and try again.', validationErrors };
     }
 
+    // 5. Atomic Transaction
     try {
-      for (const row of rows) {
-        const { StreetAddress, City, ZipCode, OwnerName, MailingAddress, OfferPrice } = row as any;
-        const [newOwner] = await db.insert(owners).values({ teamId: team.id, fullName: OwnerName, mailingAddress: MailingAddress }).returning();
-        await db.insert(properties).values({ teamId: team.id, ownerId: newOwner.id, streetAddress: StreetAddress, city: City, zipCode: ZipCode, offerPrice: OfferPrice, status: 'pending' });
-      }
       const newCreditTotal = team.contractCredits - requiredCredits;
-      await db.update(teams).set({ contractCredits: newCreditTotal }).where(eq(teams.id, team.id));
-      return { success: `Successfully processed ${requiredCredits} properties. Your new credit balance is ${newCreditTotal}.` };
+      await db.transaction(async (tx) => {
+        // Persist new contracts
+        const newContractsToInsert = validatedData.map(data => ({
+          teamId: team.id,
+          userId: user.id,
+          contractData: data, // Storing the validated JSON object
+        }));
+        
+        if (newContractsToInsert.length > 0) {
+            await tx.insert(contracts).values(newContractsToInsert);
+        }
+
+        // Deduct credits
+        await tx.update(teams).set({ contractCredits: newCreditTotal }).where(eq(teams.id, team.id));
+      });
+      // 6. Success
+      return { success: `Successfully validated and saved ${requiredCredits} contracts. Your new credit balance is ${newCreditTotal}.` };
     } catch (e: any) {
-      console.error("CSV Processing Error:", e);
-      if (e.code === '23505') { // Unique constraint violation
-        return { error: 'A database error occurred: a record with this information already exists.' };
-      } else if (e.code) { // Other database-related error
-        return { error: `A database error occurred (Code: ${e.code}). Please contact support.` };
-      }
-      return { error: 'An unexpected error occurred while processing the file. Please check your CSV column names and data format.' };
+      console.error("Database transaction failed:", e);
+      return { error: 'A database error occurred while saving your contracts. Please try again.' };
     }
   }
 );
