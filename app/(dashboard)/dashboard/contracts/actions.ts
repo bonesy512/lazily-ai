@@ -34,13 +34,8 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
     if (fieldName && value) form.getCheckBox(fieldName).check();
   };
 
-  const select = (fieldName: string | undefined, value: string | null | undefined) => {
-      // CORRECTED: Restored getRadioGroup and bypassed the incorrect type error
-      if (fieldName && value) (form as any).getRadioGroup(fieldName).select(value);
-  }
+  // --- Exhaustive mapping from the JSON data to the PDF fields ---
 
-  // Exhaustive mapping from the JSON data to the PDF fields
-  
   // Parties
   fillText('parties.seller', data.parties?.seller);
   fillText('parties.buyer', data.parties?.buyer);
@@ -54,7 +49,12 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
   fillText('property.address', data.property?.address);
   fillText('property.exclusions.part1', data.property?.exclusions?.part1);
   fillText('property.exclusions.part2', data.property?.exclusions?.part2);
-  select('property.hoaStatus', data.property?.hoaStatus);
+  
+  // HOA Status Logic (Defaulting to "is not")
+  const hoaStatus = data.property?.hoaStatus || 'is not';
+  if (hoaStatus === 'is') check('property.hoaStatus.is', true);
+  else if (hoaStatus === 'is not') check('property.hoaStatus.is_not', true);
+
 
   // Price
   fillText('price.cashPortion', data.price?.cashPortion);
@@ -84,20 +84,38 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
 
   // Title Policy
   fillText('titlePolicy.companyName', data.titlePolicy?.companyName);
-  select('titlePolicy.payer', data.titlePolicy?.payer);
-  select('titlePolicy.shortageAmendment.status', data.titlePolicy?.shortageAmendment?.status);
-  select('titlePolicy.shortageAmendment.payer', data.titlePolicy?.shortageAmendment?.payer);
+  const payer = data.titlePolicy?.payer || 'Seller'; // Default to Seller
+  if (payer === 'Seller') check('titlePolicy.payer.Seller', true);
+  else if (payer === 'Buyer') check('titlePolicy.payer.Buyer', true);
+  
+  const shortageStatus = data.titlePolicy?.shortageAmendment?.status || 'will not be amended'; // Default
+  if (shortageStatus === 'shall be amended') check('titlePolicy.shortageAmendment.status.shall_be_amended', true);
+  else if (shortageStatus === 'will not be amended') check('titlePolicy.shortageAmendment.status.will_not_be_amended', true);
+
+  const shortagePayer = data.titlePolicy?.shortageAmendment?.payer || 'Buyer'; // Default to Buyer
+  if (shortagePayer === 'Seller') check('titlePolicy.shortageAmendment.payer.Seller', true);
+  else if (shortagePayer === 'Buyer') check('titlePolicy.shortageAmendment.payer.Buyer', true);
+
 
   // Survey
-  select('survey.status', data.survey?.status);
+  const surveyStatus = data.survey?.status || "Seller's Expense"; // Default
+  if (surveyStatus === "Seller's Expense") check("survey.status.Sellers_Expense", true);
+  else if (surveyStatus === "Buyer's Expense") check("survey.status.Buyers_Expense", true);
   
   // Objections
   fillText('objections.objectionDays', data.objections?.objectionDays);
 
   // Property Condition
-  select('propertyCondition.sellerDisclosure.status', data.propertyCondition?.sellerDisclosure?.status);
+  const disclosureStatus = data.propertyCondition?.sellerDisclosure?.status || 'has not been received'; // Default
+  if (disclosureStatus === 'has been received') check('propertyCondition.sellerDisclosure.status.has_been_received', true);
+  else if (disclosureStatus === 'has not been received') check('propertyCondition.sellerDisclosure.status.has_not_been_received', true);
+  
   fillText('propertyCondition.sellerDisclosure.deliveryDays', data.propertyCondition?.sellerDisclosure?.deliveryDays);
-  select('propertyCondition.acceptanceStatus', data.propertyCondition?.acceptanceStatus);
+  
+  const acceptanceStatus = data.propertyCondition?.acceptanceStatus || 'as is'; // Default
+  if (acceptanceStatus === 'as is') check('propertyCondition.acceptanceStatus.as_is', true);
+  else if (acceptanceStatus === 'as is with repairs') check('propertyCondition.acceptanceStatus.as_is_with_repairs', true);
+
   fillText('propertyCondition.repairsList.part1', data.propertyCondition?.repairsList?.part1);
   
   // Brokers
@@ -115,7 +133,10 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
   fillText('closing.date.year', data.closing?.date?.year);
 
   // Possession
-  select('possession.status', data.possession?.status);
+  const possessionStatus = data.possession?.status || 'closing and funding'; // Default
+  if (possessionStatus === 'closing and funding') check('possession.status.closing_and_funding', true);
+  else if (possessionStatus === 'according to lease') check('possession.status.according_to_lease', true);
+
 
   // Special Provisions
   fillText('specialProvisions.text', data.specialProvisions?.text);
