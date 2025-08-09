@@ -1,119 +1,55 @@
-# Next.js SaaS Starter
+# Lazily.AI: The Effortless TREC Contract Engine
 
-This is a starter template for building a SaaS application using **Next.js** with support for authentication, Stripe integration for payments, and a dashboard for logged-in users.
+Lazily.AI is a specialized SaaS platform built to automate the generation of Texas Real Estate Commission (TREC) 1-4 Family Residential Contracts. Designed for real estate investors, wholesalers, and agents, it allows users to upload a CSV of property data and instantly generate hundreds of compliant, filled-out PDF contracts.
 
-**Demo: [https://next-saas-start.vercel.app/](https://next-saas-start.vercel.app/)**
+The platform utilizes a hybrid billing model: a low monthly subscription for access and a pay-as-you-go credit system for contract generation.
 
-## Features
+**Live Site: [https://lazily.ai](https://lazily.ai)**
 
-- Marketing landing page (`/`) with animated Terminal element
-- Pricing page (`/pricing`) which connects to Stripe Checkout
-- Dashboard pages with CRUD operations on users/teams
-- Basic RBAC with Owner and Member roles
-- Subscription management with Stripe Customer Portal
-- Email/password authentication with JWTs stored to cookies
-- Global middleware to protect logged-in routes
-- Local middleware to protect Server Actions or validate Zod schemas
-- Activity logging system for any user events
+## Key Features
+
+- **CSV to PDF Automation:** Bulk generate TREC 1-4 contracts from a single spreadsheet upload.
+- **Robust Data Validation:** Backend validation using Zod schemas to ensure CSV data integrity and contract compliance before generation.
+- **Dynamic PDF Generation:** Utilizes `pdf-lib` to programmatically fill and flatten the official TREC PDF template.
+- **Hybrid Payment Model:** Integrates Stripe for both recurring monthly subscriptions (`mode: 'subscription'`) and one-time credit pack purchases (`mode: 'payment'`).
+- **Authentication & Teams:** Secure user accounts (JWT/cookies) with team management and role-based access (Owner/Member).
+- **Dashboard:** Manage generated contracts, monitor available credits, upload CSVs, and handle billing via the Stripe Customer Portal.
+- **Activity Logging:** System for tracking key user events (logins, purchases, contract generations).
 
 ## Tech Stack
 
-- **Framework**: [Next.js](https://nextjs.org/)
-- **Database**: [Postgres](https://www.postgresql.org/)
-- **ORM**: [Drizzle](https://orm.drizzle.team/)
+- **Framework**: [Next.js](https://nextjs.org/) (App Router, Server Actions)
+- **Database**: [Postgres](https://www.postgresql.org/) (e.g., Vercel Postgres)
+- **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
 - **Payments**: [Stripe](https://stripe.com/)
-- **UI Library**: [shadcn/ui](https://ui.shadcn.com/)
+- **UI Library**: [shadcn/ui](https://ui.shadcn.com/) & Tailwind CSS
+- **Validation**: [Zod](https://zod.dev/)
+- **CSV Parsing**: [Papa Parse](https://www.papaparse.com/)
+- **PDF Manipulation**: [pdf-lib](https://pdf-lib.js.org/)
+
+## Core Workflow
+
+1.  **Upload:** The user uploads a CSV file matching the required template (`public/templates/lazily-ai-template.csv`).
+2.  **Parse & Validate:** The backend parses the CSV (Papa Parse) and validates every row against a comprehensive Zod schema (`lib/contracts/validation.ts`).
+3.  **Credit Check:** The system verifies the team has sufficient credits for the number of rows uploaded.
+4.  **Persist Data:** Validated contract data is saved to the `contracts` table, and credits are deducted within a database transaction.
+5.  **Generate (On-Demand):** When the user clicks "Download," the application retrieves the saved data and generates the PDF using `pdf-lib` and the TREC template (`lib/templates/TREC-20-18-automated-v1.pdf`).
+
+## Key File Structure
+
+- `lib/db/schema.ts`: Database schema (Users, Teams, Contracts, Credits) and relations.
+- `lib/contracts/validation.ts`: The core Zod schema defining the required TREC 1-4 data structure.
+- `lib/contracts/transformation.ts`: Logic for mapping raw CSV rows to the validated JSON structure.
+- `app/(login)/actions.ts`: Contains the `processCsvFile` Server Action (handles upload, validation, credit deduction, and DB insertion).
+- `app/(dashboard)/dashboard/contracts/actions.ts`: Contains the `generateContractAction` (handles PDF generation using `pdf-lib`).
+- `app/api/stripe/webhook/route.ts`: Handles Stripe events (subscriptions and credit purchases).
+- `lib/payments/stripe.ts`: Stripe API configuration and session creation logic.
 
 ## Getting Started
 
+Clone the repository and install dependencies:
+
 ```bash
-git clone https://github.com/nextjs/saas-starter
-cd saas-starter
+git clone [YOUR_REPOSITORY_URL_HERE]
+cd lazily-ai
 pnpm install
-```
-
-## Running Locally
-
-[Install](https://docs.stripe.com/stripe-cli) and log in to your Stripe account:
-
-```bash
-stripe login
-```
-
-Use the included setup script to create your `.env` file:
-
-```bash
-pnpm db:setup
-```
-
-Run the database migrations and seed the database with a default user and team:
-
-```bash
-pnpm db:migrate
-pnpm db:seed
-```
-
-This will create the following user and team:
-
-- User: `test@test.com`
-- Password: `admin123`
-
-You can also create new users through the `/sign-up` route.
-
-Finally, run the Next.js development server:
-
-```bash
-pnpm dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser to see the app in action.
-
-You can listen for Stripe webhooks locally through their CLI to handle subscription change events:
-
-```bash
-stripe listen --forward-to localhost:3000/api/stripe/webhook
-```
-
-## Testing Payments
-
-To test Stripe payments, use the following test card details:
-
-- Card Number: `4242 4242 4242 4242`
-- Expiration: Any future date
-- CVC: Any 3-digit number
-
-## Going to Production
-
-When you're ready to deploy your SaaS application to production, follow these steps:
-
-### Set up a production Stripe webhook
-
-1. Go to the Stripe Dashboard and create a new webhook for your production environment.
-2. Set the endpoint URL to your production API route (e.g., `https://yourdomain.com/api/stripe/webhook`).
-3. Select the events you want to listen for (e.g., `checkout.session.completed`, `customer.subscription.updated`).
-
-### Deploy to Vercel
-
-1. Push your code to a GitHub repository.
-2. Connect your repository to [Vercel](https://vercel.com/) and deploy it.
-3. Follow the Vercel deployment process, which will guide you through setting up your project.
-
-### Add environment variables
-
-In your Vercel project settings (or during deployment), add all the necessary environment variables. Make sure to update the values for the production environment, including:
-
-1. `BASE_URL`: Set this to your production domain.
-2. `STRIPE_SECRET_KEY`: Use your Stripe secret key for the production environment.
-3. `STRIPE_WEBHOOK_SECRET`: Use the webhook secret from the production webhook you created in step 1.
-4. `POSTGRES_URL`: Set this to your production database URL.
-5. `AUTH_SECRET`: Set this to a random string. `openssl rand -base64 32` will generate one.
-
-## Other Templates
-
-While this template is intentionally minimal and to be used as a learning resource, there are other paid versions in the community which are more full-featured:
-
-- https://achromatic.dev
-- https://shipfa.st
-- https://makerkit.dev
-- https://zerotoshipped.com
-- https://turbostarter.dev
