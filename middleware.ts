@@ -6,6 +6,13 @@ const protectedRoutes = '/dashboard';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // THIS IS THE FIX:
+  // If the request is for the Stripe webhook, let it pass through immediately.
+  if (pathname.startsWith('/api/stripe/webhook')) {
+    return NextResponse.next();
+  }
+
   const sessionCookie = request.cookies.get('session');
   const isProtectedRoute = pathname.startsWith(protectedRoutes);
 
@@ -19,7 +26,6 @@ export async function middleware(request: NextRequest) {
     try {
       const parsed = await verifyToken(sessionCookie.value);
       const expiresInOneDay = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
       res.cookies.set({
         name: 'session',
         value: await signToken({
