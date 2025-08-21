@@ -1,5 +1,10 @@
 import Stripe from 'stripe';
-import { handleSubscriptionChange, stripe, handleCreditPurchase } from '@/lib/payments/stripe';
+import {
+  handleSubscriptionChange,
+  stripe,
+  handleCreditPurchase,
+  handleSubscriptionPurchase,
+} from '@/lib/payments/stripe';
 import { NextRequest, NextResponse } from 'next/server';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -21,7 +26,6 @@ export async function POST(request: NextRequest) {
   }
 
   switch (event.type) {
-    case 'customer.subscription.created':
     case 'customer.subscription.updated':
     case 'customer.subscription.deleted':
       const subscription = event.data.object as Stripe.Subscription;
@@ -31,6 +35,8 @@ export async function POST(request: NextRequest) {
       const session = event.data.object as Stripe.Checkout.Session;
       if (session.mode === 'payment') {
         await handleCreditPurchase(session);
+      } else if (session.mode === 'subscription') {
+        await handleSubscriptionPurchase(session);
       }
       break;
     default:

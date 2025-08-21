@@ -5,7 +5,8 @@ import {
   getTeamByStripeCustomerId,
   getUser,
   updateTeamSubscription,
-  createActivityLog
+  createActivityLog,
+  getTeamOwner
 } from '@/lib/db/queries';
 import { db } from '../db/drizzle';
 import { teams } from '../db/schema';
@@ -125,7 +126,7 @@ export async function createCustomerPortalSession(team: Team) {
 
 export async function handleSubscriptionChange(
   subscription: Stripe.Subscription,
-  eventType: 'customer.subscription.created' | 'customer.subscription.updated' | 'customer.subscription.deleted'
+  eventType: 'customer.subscription.updated' | 'customer.subscription.deleted'
 ) {
   const customerId = subscription.customer as string;
   const subscriptionId = subscription.id;
@@ -147,13 +148,15 @@ export async function handleSubscriptionChange(
       subscriptionStatus: status
     });
 
-    const user = await getUser();
-    if (user) {
-      await createActivityLog({
-        teamId: team.id,
-        userId: user.id,
-        action: eventType === 'customer.subscription.created' ? ActivityType.MEMBERSHIP_PURCHASE : ActivityType.MEMBERSHIP_RENEWAL,
-      });
+    if (eventType === 'customer.subscription.updated') {
+      const owner = await getTeamOwner(team.id);
+      if (owner) {
+        await createActivityLog({
+          teamId: team.id,
+          userId: owner.id,
+          action: ActivityType.MEMBERSHIP_RENEWAL,
+        });
+      }
     }
 
   } else if (status === 'canceled' || status === 'unpaid') {
@@ -163,6 +166,25 @@ export async function handleSubscriptionChange(
       planName: null,
       subscriptionStatus: status
     });
+  }
+}
+
+export async function handleSubscriptionPurchase(session: Stripe.Checkout.Session) {
+  const customerId = session.customer as string;
+  const team = await getTeamByStripeCustomerId(customerId);
+
+  if (!team) {
+    console.error('Team not found for Stripe customer:', customerId);
+    return;
+  }
+
+  const userId = parseInt(session.client_reference_id!);
+  if (userId) {
+      await createActivityLog({
+        teamId: team.id,
+        userId: userId,
+        action: ActivityType.MEMBERSHIP_PURCHASE,
+      });
   }
 }
 
@@ -192,11 +214,11 @@ export async function handleCreditPurchase(session: Stripe.Checkout.Session) {
       contractCredits: (team.contractCredits || 0) + creditsPurchased
     }).where(eq(teams.id, team.id));
 
-    const user = await getUser();
-    if (user) {
+    const userId = parseInt(session.client_reference_id!);
+    if (userId) {
       await createActivityLog({
         teamId: team.id,
-        userId: user.id,
+        userId: userId,
         action: ActivityType.CREDIT_PURCHASE,
       });
     }
