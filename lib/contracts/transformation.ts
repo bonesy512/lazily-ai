@@ -20,9 +20,12 @@ export const mapCsvRowToJson = (row: Record<string, string>): Trec14ContractData
       city: row['property.city'] || null,
       county: row['property.county'] || null,
       address: row['property.address'] || null,
-      exclusions: { part1: null, part2: null }, // Added missing required field
+      exclusions: {
+        part1: row['property.exclusions.part1'] || null,
+        part2: row['property.exclusions.part2'] || null,
+      },
       hoaStatus: (row['property.hoaStatus'] as any) || null,
-      requiredNotices: null,
+      requiredNotices: row['property.requiredNotices'] || null,
     },
     price: {
       cashPortion: row['price.cashPortion'] || null,
@@ -38,63 +41,115 @@ export const mapCsvRowToJson = (row: Record<string, string>): Trec14ContractData
       isResidential: toBoolean(row['leases.isResidential']),
       isFixture: toBoolean(row['leases.isFixture']),
       isNaturalResource: toBoolean(row['leases.isNaturalResource']),
-      naturalResourceTerminationDays: null,
-      naturalResourceDeliveryStatus: null,
+      naturalResourceTerminationDays: row['leases.naturalResourceTerminationDays'] || null,
+      naturalResourceDeliveryStatus: (row['leases.naturalResourceDeliveryStatus'] as any) || null,
     },
     earnestMoney: {
       escrowAgentName: row['earnestMoney.escrowAgentName'] || null,
-      escrowAgentAddress: { part1: null, part2: null },
+      escrowAgentAddress: {
+        part1: row['earnestMoney.escrowAgentAddress.part1'] || null,
+        part2: row['earnestMoney.escrowAgentAddress.part2'] || null,
+      },
       amount: row['earnestMoney.amount'] || null,
-      additionalAmount: null,
-      additionalAmountDays: null,
+      additionalAmount: row['earnestMoney.additionalAmount'] || null,
+      additionalAmountDays: row['earnestMoney.additionalAmountDays'] || null,
     },
     optionFee: {
       amount: row['optionFee.amount'] || null,
       days: row['optionFee.days'] || null,
     },
     titlePolicy: {
-      companyName: null,
+      companyName: row['titlePolicy.companyName'] || null,
       payer: (row['titlePolicy.payer'] as any) || null,
-      shortageAmendment: { status: null, payer: null },
+      shortageAmendment: {
+        status: (row['titlePolicy.shortageAmendment.status'] as any) || null,
+        payer: (row['titlePolicy.shortageAmendment.payer'] as any) || null,
+      },
     },
     survey: {
       status: (row['survey.status'] as any) || null,
-      existing: { deliveryDays: null, affidavitPayer: null },
-      new: { deliveryDays: null },
-      newBySeller: { deliveryDays: null },
+      existing: {
+        deliveryDays: row['survey.existing.deliveryDays'] || null,
+        affidavitPayer: (row['survey.existing.affidavitPayer'] as any) || null,
+      },
+      new: {
+        deliveryDays: row['survey.new.deliveryDays'] || null,
+      },
+      newBySeller: {
+        deliveryDays: row['survey.newBySeller.deliveryDays'] || null,
+      },
     },
     objections: {
-      prohibitedUseActivity: null,
-      objectionDays: null,
+      prohibitedUseActivity: row['objections.prohibitedUseActivity'] || null,
+      objectionDays: row['objections.objectionDays'] || null,
     },
     propertyCondition: {
       sellerDisclosure: {
         status: (row['propertyCondition.sellerDisclosure.status'] as any) || null,
-        deliveryDays: null,
+        deliveryDays: row['propertyCondition.sellerDisclosure.deliveryDays'] || null,
       },
       acceptanceStatus: (row['propertyCondition.acceptanceStatus'] as any) || null,
-      repairsList: { part1: null, part2: null },
+      repairsList: {
+        part1: row['propertyCondition.repairsList.part1'] || null,
+        part2: row['propertyCondition.repairsList.part2'] || null,
+      },
     },
     serviceContract: {
-      maxCost: null,
+      maxCost: row['serviceContract.maxCost'] || null,
     },
     brokers: {
       listing: {
-        associate: { name: null, licenseNo: null, teamName: null, email: null, phone: null },
+        associate: {
+          name: row['brokers.listing.associate.name'] || null,
+          licenseNo: row['brokers.listing.associate.licenseNo'] || null,
+          teamName: row['brokers.listing.associate.teamName'] || null,
+          email: row['brokers.listing.associate.email'] || null,
+          phone: row['brokers.listing.associate.phone'] || null,
+        },
         represents: (row['brokers.listing.represents'] as any) || null,
-        firmName: null, firmLicenseNo: null,
-        supervisor: { name: null, licenseNo: null },
-        address: { street: null, city: null, state: null, zip: null, phone: null },
+        firmName: row['brokers.listing.firmName'] || null,
+        firmLicenseNo: row['brokers.listing.firmLicenseNo'] || null,
+        supervisor: {
+          name: row['brokers.listing.supervisor.name'] || null,
+          licenseNo: row['brokers.listing.supervisor.licenseNo'] || null,
+        },
+        address: {
+          street: row['brokers.listing.address.street'] || null,
+          city: row['brokers.listing.address.city'] || null,
+          state: row['brokers.listing.address.state'] || null,
+          zip: row['brokers.listing.address.zip'] || null,
+          phone: row['brokers.listing.address.phone'] || null,
+        },
       },
       other: {
-        firmName: null, firmLicenseNo: null,
+        firmName: row['brokers.other.firmName'] || null,
+        firmLicenseNo: row['brokers.other.firmLicenseNo'] || null,
         represents: (row['brokers.other.represents'] as any) || null,
-        associate: { name: null, licenseNo: null, teamName: null, email: null, phone: null },
-        supervisor: { name: null, licenseNo: null },
-        address: { street: null, city: null, state: null, zip: null, phone: null },
+        associate: {
+          name: row['brokers.other.associate.name'] || null,
+          licenseNo: row['brokers.other.associate.licenseNo'] || null,
+          teamName: row['brokers.other.associate.teamName'] || null,
+          email: row['brokers.other.associate.email'] || null,
+          phone: row['brokers.other.associate.phone'] || null,
+        },
+        supervisor: {
+          name: row['brokers.other.supervisor.name'] || null,
+          licenseNo: row['brokers.other.supervisor.licenseNo'] || null,
+        },
+        address: {
+          street: row['brokers.other.address.street'] || null,
+          city: row['brokers.other.address.city'] || null,
+          state: row['brokers.other.address.state'] || null,
+          zip: row['brokers.other.address.zip'] || null,
+          phone: row['brokers.other.address.phone'] || null,
+        },
       },
       disclosure: {
-        fee: { dollarAmount: null, percentage: null, type: null },
+        fee: {
+          dollarAmount: row['brokers.disclosure.fee.dollarAmount'] || null,
+          percentage: row['brokers.disclosure.fee.percentage'] || null,
+          type: (row['brokers.disclosure.fee.type'] as any) || null,
+        },
       },
     },
     closing: {
@@ -110,28 +165,83 @@ export const mapCsvRowToJson = (row: Record<string, string>): Trec14ContractData
       text: row['specialProvisions.text'] || null,
     },
     settlement: {
-      sellerContributionToBrokerage: { type: null, dollarAmount: null, percentage: null },
-      sellerContributionToOther: { amount: null },
+      sellerContributionToBrokerage: {
+        type: (row['settlement.sellerContributionToBrokerage.type'] as any) || null,
+        dollarAmount: row['settlement.sellerContributionToBrokerage.dollarAmount'] || null,
+        percentage: row['settlement.sellerContributionToBrokerage.percentage'] || null,
+      },
+      sellerContributionToOther: {
+        amount: row['settlement.sellerContributionToOther.amount'] || null,
+      },
     },
     notices: {
-      buyer: { contactInfo: { part1: null, part2: null }, phone: null, emailFax: { '1': null, '2': null } },
-      seller: { contactInfo: { part1: null, part2: null }, phone: null, emailFax: { '1': null, '2': null } },
+      buyer: {
+        contactInfo: {
+          part1: row['notices.buyer.contactInfo.part1'] || null,
+          part2: row['notices.buyer.contactInfo.part2'] || null,
+        },
+        phone: row['notices.buyer.phone'] || null,
+        emailFax: {
+          '1': row['notices.buyer.emailFax.1'] || null,
+          '2': row['notices.buyer.emailFax.2'] || null,
+        },
+      },
+      seller: {
+        contactInfo: {
+          part1: row['notices.seller.contactInfo.part1'] || null,
+          part2: row['notices.seller.contactInfo.part2'] || null,
+        },
+        phone: row['notices.seller.phone'] || null,
+        emailFax: {
+          '1': row['notices.seller.emailFax.1'] || null,
+          '2': row['notices.seller.emailFax.2'] || null,
+        },
+      },
     },
     addenda: {
-      thirdPartyFinancing: false, sellerFinancing: false, hoa: false, buyersTemporaryLease: false,
-      loanAssumption: false, saleOfOtherProperty: false, mineralReservation: false, backupContract: false,
-      coastalAreaProperty: false, hydrostaticTesting: false, lenderAppraisalTermination: false,
-      environmentalAssessment: false, sellersTemporaryLease: false, shortSale: false,
-      seawardOfGulfWaterway: false, leadBasedPaint: false, propaneGasSystem: false,
-      residentialLeases: false, fixtureLeases: false, section1031Exchange: false,
-      improvementDistrict: false, otherText: { p1: null },
+      thirdPartyFinancing: toBoolean(row['addenda.thirdPartyFinancing']),
+      sellerFinancing: toBoolean(row['addenda.sellerFinancing']),
+      hoa: toBoolean(row['addenda.hoa']),
+      buyersTemporaryLease: toBoolean(row['addenda.buyersTemporaryLease']),
+      loanAssumption: toBoolean(row['addenda.loanAssumption']),
+      saleOfOtherProperty: toBoolean(row['addenda.saleOfOtherProperty']),
+      mineralReservation: toBoolean(row['addenda.mineralReservation']),
+      backupContract: toBoolean(row['addenda.backupContract']),
+      coastalAreaProperty: toBoolean(row['addenda.coastalAreaProperty']),
+      hydrostaticTesting: toBoolean(row['addenda.hydrostaticTesting']),
+      lenderAppraisalTermination: toBoolean(row['addenda.lenderAppraisalTermination']),
+      environmentalAssessment: toBoolean(row['addenda.environmentalAssessment']),
+      sellersTemporaryLease: toBoolean(row['addenda.sellersTemporaryLease']),
+      shortSale: toBoolean(row['addenda.shortSale']),
+      seawardOfGulfWaterway: toBoolean(row['addenda.seawardOfGulfWaterway']),
+      leadBasedPaint: toBoolean(row['addenda.leadBasedPaint']),
+      propaneGasSystem: toBoolean(row['addenda.propaneGasSystem']),
+      residentialLeases: toBoolean(row['addenda.residentialLeases']),
+      fixtureLeases: toBoolean(row['addenda.fixtureLeases']),
+      section1031Exchange: toBoolean(row['addenda.section1031Exchange']),
+      improvementDistrict: toBoolean(row['addenda.improvementDistrict']),
+      otherText: {
+        p1: row['addenda.otherText.p1'] || null,
+      },
     },
     attorneys: {
-      buyer: { name: null, phone: null, fax: null, email: null },
-      seller: { name: null, phone: null, fax: null, email: null },
+      buyer: {
+        name: row['attorneys.buyer.name'] || null,
+        phone: row['attorneys.buyer.phone'] || null,
+        fax: row['attorneys.buyer.fax'] || null,
+        email: row['attorneys.buyer.email'] || null,
+      },
+      seller: {
+        name: row['attorneys.seller.name'] || null,
+        phone: row['attorneys.seller.phone'] || null,
+        fax: row['attorneys.seller.fax'] || null,
+        email: row['attorneys.seller.email'] || null,
+      },
     },
     execution: {
-      day: null, month: null, year: null,
+      day: row['execution.day'] || null,
+      month: row['execution.month'] || null,
+      year: row['execution.year'] || null,
     },
   };
 };
