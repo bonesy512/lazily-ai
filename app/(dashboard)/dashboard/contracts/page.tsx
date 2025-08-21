@@ -1,11 +1,24 @@
-// app/(dashboard)/dashboard/contracts/page.tsx
+'use client';
 
 import { CsvUploadForm } from '@/components/dashboard/CsvUploadForm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditsCounter } from "@/components/dashboard/CreditsCounter";
-import { ContractList } from '@/components/dashboard/ContractList'; // Import new component
+import { ContractList } from '@/components/dashboard/ContractList';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, Suspense } from 'react';
+import { useSWRConfig } from 'swr';
 
-export default async function ContractsPage() {
+function Contracts() {
+  const { mutate } = useSWRConfig();
+  const searchParams = useSearchParams();
+  const success = searchParams.get('success');
+
+  useEffect(() => {
+    if (success === 'true') {
+      mutate('/api/team/credits');
+    }
+  }, [success, mutate]);
+
   return (
     <section className="space-y-6">
       <div className="grid gap-4 md:grid-cols-4">
@@ -32,9 +45,17 @@ export default async function ContractsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <ContractList /> {/* Use the new component */}
+          <ContractList />
         </CardContent>
       </Card>
     </section>
+  );
+}
+
+export default function ContractsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Contracts />
+    </Suspense>
   );
 }
