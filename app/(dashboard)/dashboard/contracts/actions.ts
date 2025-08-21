@@ -46,6 +46,13 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
     } catch (e) { console.log(`Could not find CheckBox: ${fieldName}`); }
   };
 
+  const formatCurrency = (value: string | null | undefined) => {
+    if (!value) return '';
+    const number = parseFloat(value);
+    if (isNaN(number)) return value;
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(number);
+  };
+
   // --- Parties ---
   fillText('parties.seller', data.parties?.seller);
   fillText('parties.buyer', data.parties?.buyer);
@@ -65,9 +72,9 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
   else if (hoaStatus === 'not_subject') check('property.hoaStatus.not_subject', true);
 
   // --- Price ---
-  fillText('price.cashPortion', data.price?.cashPortion);
-  fillText('price.financeAmount', data.price?.financeAmount);
-  fillText('price.salesPrice', data.price?.salesPrice);
+  fillText('price.cashPortion', formatCurrency(data.price?.cashPortion));
+  fillText('price.financeAmount', formatCurrency(data.price?.financeAmount));
+  fillText('price.salesPrice', formatCurrency(data.price?.salesPrice));
 
   // --- Financing ---
   check('financing.thirdParty', data.financing?.thirdParty);
@@ -82,12 +89,13 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
   // --- Earnest Money ---
   fillText('earnestMoney.escrowAgentName', data.earnestMoney?.escrowAgentName);
   fillText('earnestMoney.escrowAgentAddress.part1', data.earnestMoney?.escrowAgentAddress?.part1);
-  fillText('earnestMoney.amount', data.earnestMoney?.amount);
-  fillText('earnestMoney.additionalAmount', data.earnestMoney?.additionalAmount);
+  fillText('earnestMoney.escrowAgentAddress.part2', data.earnestMoney?.escrowAgentAddress?.part2);
+  fillText('earnestMoney.amount', formatCurrency(data.earnestMoney?.amount));
+  fillText('earnestMoney.additionalAmount', formatCurrency(data.earnestMoney?.additionalAmount));
   fillText('earnestMoney.additionalAmountDays', data.earnestMoney?.additionalAmountDays);
 
   // --- Option Fee ---
-  fillText('optionFee.amount', data.optionFee?.amount);
+  fillText('optionFee.amount', formatCurrency(data.optionFee?.amount));
   fillText('optionFee.days', data.optionFee?.days);
 
   // --- Title Policy ---
@@ -120,12 +128,15 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
 
   // --- Property Condition ---
   const disclosureStatus = data.propertyCondition?.sellerDisclosure?.status;
-  if (disclosureStatus === 'received') check('propertyCondition.sellerDisclosure.status.received', true);
-  else if (disclosureStatus === 'not_received') check('propertyCondition.sellerDisclosure.status.not_received', true);
-  else if (disclosureStatus === 'not_required') check('propertyCondition.sellerDisclosure.status.not_required', true);
+  if (disclosureStatus === 'received') {
+    check('propertyCondition.sellerDisclosure.status.received', true);
+  } else if (disclosureStatus === 'not_received') {
+    check('propertyCondition.sellerDisclosure.status.not_received', true);
+    fillText('propertyCondition.sellerDisclosure.deliveryDays', data.propertyCondition?.sellerDisclosure?.deliveryDays);
+  } else if (disclosureStatus === 'not_required') {
+    check('propertyCondition.sellerDisclosure.status.not_required', true);
+  }
   
-  fillText('propertyCondition.sellerDisclosure.deliveryDays', data.propertyCondition?.sellerDisclosure?.deliveryDays);
-
   const acceptanceStatus = data.propertyCondition?.acceptanceStatus;
   if (acceptanceStatus === 'as_is') check('propertyCondition.acceptanceStatus.as_is', true);
   else if (acceptanceStatus === 'as_is_with_repairs') check('propertyCondition.acceptanceStatus.as_is_with_repairs', true);
@@ -163,11 +174,13 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
   fillText('specialProvisions.text', data.specialProvisions?.text);
 
   // --- Settlement ---
-  fillText('settlement.sellerContributionToOther.amount', data.settlement?.sellerContributionToOther?.amount);
+  fillText('settlement.sellerContributionToOther.amount', formatCurrency(data.settlement?.sellerContributionToOther?.amount));
 
   // --- Notices ---
   fillText('notices.buyer.contactInfo.part1', data.notices?.buyer?.contactInfo?.part1);
+  fillText('notices.buyer.contactInfo.part2', data.notices?.buyer?.contactInfo?.part2);
   fillText('notices.seller.contactInfo.part1', data.notices?.seller?.contactInfo?.part1);
+  fillText('notices.seller.contactInfo.part2', data.notices?.seller?.contactInfo?.part2);
 
   // --- Addenda ---
   check('addenda.thirdPartyFinancing', data.addenda?.thirdPartyFinancing);
