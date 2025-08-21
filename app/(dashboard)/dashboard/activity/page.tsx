@@ -10,6 +10,10 @@ import {
   Mail,
   CheckCircle,
   type LucideIcon,
+  CreditCard,
+  Repeat,
+  FileText,
+  ShoppingCart,
 } from 'lucide-react';
 import { ActivityType } from '@/lib/db/schema';
 import { getActivityLogs } from '@/lib/db/queries';
@@ -25,6 +29,10 @@ const iconMap: Record<ActivityType, LucideIcon> = {
   [ActivityType.REMOVE_TEAM_MEMBER]: UserMinus,
   [ActivityType.INVITE_TEAM_MEMBER]: Mail,
   [ActivityType.ACCEPT_INVITATION]: CheckCircle,
+  [ActivityType.MEMBERSHIP_PURCHASE]: ShoppingCart,
+  [ActivityType.MEMBERSHIP_RENEWAL]: Repeat,
+  [ActivityType.CREDIT_PURCHASE]: CreditCard,
+  [ActivityType.CONTRACT_GENERATED]: FileText,
 };
 
 function getRelativeTime(date: Date) {
@@ -63,6 +71,14 @@ function formatAction(action: ActivityType): string {
       return 'You invited a team member';
     case ActivityType.ACCEPT_INVITATION:
       return 'You accepted an invitation';
+    case ActivityType.MEMBERSHIP_PURCHASE:
+      return 'You purchased a membership';
+    case ActivityType.MEMBERSHIP_RENEWAL:
+      return 'Your membership was renewed';
+    case ActivityType.CREDIT_PURCHASE:
+      return 'You purchased credits';
+    case ActivityType.CONTRACT_GENERATED:
+      return 'You generated a contract';
     default:
       return 'Unknown action occurred';
   }
