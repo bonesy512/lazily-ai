@@ -71,7 +71,7 @@ function CreditPack({ credits, price, discount, priceId }: { credits: number; pr
   );
 }
 
-export default function BillingPage() {
+function Billing() {
   const { mutate } = useSWRConfig();
   const searchParams = useSearchParams();
   const success = searchParams.get('success');
@@ -114,5 +114,13 @@ export default function BillingPage() {
         </Card>
       </div>
     </section>
+  );
+}
+
+export default function BillingPage() {
+  return (
+    <Suspense fallback={<div className="w-full h-full flex items-center justify-center"><p>Loading...</p></div>}>
+      <Billing />
+    </Suspense>
   );
 }
