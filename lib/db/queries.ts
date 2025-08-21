@@ -5,7 +5,7 @@ import { db } from './drizzle';
 // Import table objects (values)
 import { activityLogs, teamMembers, teams, users, contracts, ActivityType, User } from './schema';
 // Import TypeScript types separately for clarity
-import type { Contract } from './schema';
+import type { Contract, Trec14ContractData } from './schema';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/auth/session';
 
@@ -150,6 +150,14 @@ export async function getContractsForUser(): Promise<Contract[]> {
       console.error('Database Error fetching contracts:', error);
       throw new Error('Failed to fetch contracts.');
     }
+}
+
+export async function createContract(teamId: number, userId: number, contractData: Trec14ContractData) {
+    return await db.insert(contracts).values({
+        teamId,
+        userId,
+        contractData,
+    }).returning();
 }
 
 export async function getTeamOwner(teamId: number): Promise<User | null> {
