@@ -1,26 +1,16 @@
-'use client';
-
 import { CsvUploadForm } from '@/components/dashboard/CsvUploadForm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditsCounter } from "@/components/dashboard/CreditsCounter";
 import { ContractList } from '@/components/dashboard/ContractList';
-import { useSearchParams } from 'next/navigation';
-import { useEffect, Suspense } from 'react';
-import { useSWRConfig } from 'swr';
+import { CreditRefresher } from '@/components/dashboard/CreditRefresher';
+import { Suspense } from 'react';
 
-function Contracts() {
-  const { mutate } = useSWRConfig();
-  const searchParams = useSearchParams();
-  const success = searchParams.get('success');
-
-  useEffect(() => {
-    if (success === 'true') {
-      mutate('/api/team/credits');
-    }
-  }, [success, mutate]);
-
+export default async function ContractsPage() {
   return (
     <section className="space-y-6">
+      <Suspense fallback={null}>
+        <CreditRefresher />
+      </Suspense>
       <div className="grid gap-4 md:grid-cols-4">
         <CreditsCounter />
       </div>
@@ -42,20 +32,12 @@ function Contracts() {
           <CardTitle>Generated Contracts</CardTitle>
           <CardDescription>
             Contracts you've created from a CSV upload will appear here.
-          </CardDescription>
+          </Description>
         </CardHeader>
         <CardContent className="p-0">
           <ContractList />
         </CardContent>
       </Card>
     </section>
-  );
-}
-
-export default function ContractsPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <Contracts />
-    </Suspense>
   );
 }
