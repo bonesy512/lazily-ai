@@ -3,9 +3,9 @@
 'use server';
 
 import { db } from '@/lib/db/drizzle';
-import { contracts } from '@/lib/db/schema';
+import { contracts, ActivityType } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { getUser } from '@/lib/db/queries';
+import { getUser, createActivityLog, getTeamForUser } from '@/lib/db/queries';
 import { PDFDocument } from 'pdf-lib';
 import fs from 'fs/promises';
 import path from 'path';
@@ -17,6 +17,15 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
 
   const contract = await db.query.contracts.findFirst({ where: eq(contracts.id, contractId) });
   if (!contract) throw new Error('Contract not found.');
+
+  const team = await getTeamForUser();
+  if (team) {
+    await createActivityLog({
+      teamId: team.id,
+      userId: user.id,
+      action: ActivityType.CONTRACT_GENERATED,
+    });
+  }
   
   const data = contract.contractData as Trec14ContractData;
 

@@ -3,7 +3,7 @@
 import { desc, and, eq, isNull } from 'drizzle-orm';
 import { db } from './drizzle';
 // Import table objects (values)
-import { activityLogs, teamMembers, teams, users, contracts } from './schema';
+import { activityLogs, teamMembers, teams, users, contracts, ActivityType, User } from './schema';
 // Import TypeScript types separately for clarity
 import type { Contract } from './schema';
 import { cookies } from 'next/headers';
@@ -150,4 +150,34 @@ export async function getContractsForUser(): Promise<Contract[]> {
       console.error('Database Error fetching contracts:', error);
       throw new Error('Failed to fetch contracts.');
     }
+}
+
+export async function getTeamOwner(teamId: number): Promise<User | null> {
+  const result = await db
+    .select({ user: users })
+    .from(teamMembers)
+    .innerJoin(users, eq(teamMembers.userId, users.id))
+    .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.role, 'owner')))
+    .limit(1);
+
+  return result.length > 0 ? result[0].user : null;
+}
+
+export async function createActivityLog({
+  teamId,
+  userId,
+  action,
+  ipAddress,
+}: {
+  teamId: number;
+  userId: number;
+  action: ActivityType;
+  ipAddress?: string;
+}) {
+  await db.insert(activityLogs).values({
+    teamId,
+    userId,
+    action,
+    ipAddress,
+  });
 }

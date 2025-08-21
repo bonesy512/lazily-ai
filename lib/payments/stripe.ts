@@ -1,11 +1,16 @@
 import Stripe from 'stripe';
 import { redirect } from 'next/navigation';
-import { Team } from '@/lib/db/schema';
+import { Team, ActivityType } from '@/lib/db/schema';
 import {
   getTeamByStripeCustomerId,
   getUser,
-  updateTeamSubscription
+  updateTeamSubscription,
+  createActivityLog,
+  getTeamOwner
 } from '@/lib/db/queries';
+import { db } from '../db/drizzle';
+import { teams } from '../db/schema';
+import { eq } from 'drizzle-orm';
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-04-30.basil'
@@ -120,7 +125,8 @@ export async function createCustomerPortalSession(team: Team) {
 }
 
 export async function handleSubscriptionChange(
-  subscription: Stripe.Subscription
+  subscription: Stripe.Subscription,
+  eventType: 'customer.subscription.updated' | 'customer.subscription.deleted'
 ) {
   const customerId = subscription.customer as string;
   const subscriptionId = subscription.id;
@@ -141,6 +147,18 @@ export async function handleSubscriptionChange(
       planName: (plan?.product as Stripe.Product).name,
       subscriptionStatus: status
     });
+
+    if (eventType === 'customer.subscription.updated') {
+      const owner = await getTeamOwner(team.id);
+      if (owner) {
+        await createActivityLog({
+          teamId: team.id,
+          userId: owner.id,
+          action: ActivityType.MEMBERSHIP_RENEWAL,
+        });
+      }
+    }
+
   } else if (status === 'canceled' || status === 'unpaid') {
     await updateTeamSubscription(team.id, {
       stripeSubscriptionId: null,
@@ -148,6 +166,62 @@ export async function handleSubscriptionChange(
       planName: null,
       subscriptionStatus: status
     });
+  }
+}
+
+export async function handleSubscriptionPurchase(session: Stripe.Checkout.Session) {
+  const customerId = session.customer as string;
+  const team = await getTeamByStripeCustomerId(customerId);
+
+  if (!team) {
+    console.error('Team not found for Stripe customer:', customerId);
+    return;
+  }
+
+  const userId = parseInt(session.client_reference_id!);
+  if (userId) {
+      await createActivityLog({
+        teamId: team.id,
+        userId: userId,
+        action: ActivityType.MEMBERSHIP_PURCHASE,
+      });
+  }
+}
+
+export async function handleCreditPurchase(session: Stripe.Checkout.Session) {
+  const customerId = session.customer as string;
+  const team = await getTeamByStripeCustomerId(customerId);
+
+  if (!team) {
+    console.error('Team not found for Stripe customer:', customerId);
+    return;
+  }
+
+  const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+  const priceId = lineItems.data[0].price?.id;
+
+  // This is a simplified way to determine credits from price.
+  // In a real application, you might have this mapping in your database or config.
+  let creditsPurchased = 0;
+  if (priceId === process.env.STRIPE_CREDITS_PRICE_ID_100) {
+    creditsPurchased = 100;
+  } else if (priceId === process.env.STRIPE_CREDITS_PRICE_ID_500) {
+    creditsPurchased = 500;
+  }
+
+  if (creditsPurchased > 0) {
+    await db.update(teams).set({
+      contractCredits: (team.contractCredits || 0) + creditsPurchased
+    }).where(eq(teams.id, team.id));
+
+    const userId = parseInt(session.client_reference_id!);
+    if (userId) {
+      await createActivityLog({
+        teamId: team.id,
+        userId: userId,
+        action: ActivityType.CREDIT_PURCHASE,
+      });
+    }
   }
 }
 
