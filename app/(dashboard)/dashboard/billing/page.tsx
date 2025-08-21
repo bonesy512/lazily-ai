@@ -3,17 +3,17 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { customerPortalAction, creditCheckoutAction } from '@/lib/payments/actions';
-import useSWR from 'swr';
+import useSWR, { useSWRConfig } from 'swr';
 import { TeamDataWithMembers } from '@/lib/db/schema';
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { useFormStatus } from 'react-dom';
-import { CreditsCounter } from "@/components/dashboard/CreditsCounter"; // This line is now correct
+import { CreditsCounter } from "@/components/dashboard/CreditsCounter";
+import { useSearchParams } from "next/navigation";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 function ManageSubscription() {
   const { data: teamData } = useSWR<TeamDataWithMembers>('/api/team', fetcher);
-
   return (
     <Card>
       <CardHeader>
@@ -70,19 +70,29 @@ function CreditPack({ credits, price, discount, priceId }: { credits: number; pr
 }
 
 export default function BillingPage() {
+  const { mutate } = useSWRConfig();
+  const searchParams = useSearchParams();
+  const success = searchParams.get('success');
+
+  useEffect(() => {
+    if (success === 'true') {
+      mutate('/api/team/credits');
+    }
+  }, [success, mutate]);
+
   return (
     <section>
       <h1 className="text-lg lg:text-2xl font-medium mb-6">
         Subscription & Billing
       </h1>
-      
+
       <div className="space-y-8">
         <div className="grid gap-4 md:grid-cols-4">
             <div className="md:col-span-1">
                 <CreditsCounter />
             </div>
         </div>
-        
+
         <Suspense fallback={<Card className="h-32 animate-pulse" />}>
           <ManageSubscription />
         </Suspense>
