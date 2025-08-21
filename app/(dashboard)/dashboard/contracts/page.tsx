@@ -32,7 +32,7 @@ export default async function ContractsPage() {
           <CardTitle>Generated Contracts</CardTitle>
           <CardDescription>
             Contracts you've created from a CSV upload will appear here.
-          </Description>
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <ContractList />
