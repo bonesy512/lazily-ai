@@ -1,3 +1,7 @@
+// In /app/(dashboard)/dashboard/billing/page.tsx
+
+export const dynamic = 'force-dynamic'; // <-- THIS IS THE FIX
+
 'use client';
 
 import { Button } from "@/components/ui/button";
