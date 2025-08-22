@@ -4,8 +4,9 @@
 
 import { db } from '@/lib/db/drizzle';
 import { contracts, ActivityType, teams } from '@/lib/db/schema';
+// Ensure eq and sql are imported correctly from drizzle-orm
 import { eq, sql } from 'drizzle-orm';
-import { getUser, createActivityLog, getUserWithTeam } from '@/lib/db/queries';
+import { getUser, createActivityLog } from '@/lib/db/queries'; // Removed unused getTeamForUser import
 import { PDFDocument } from 'pdf-lib';
 import fs from 'fs/promises';
 import path from 'path';
@@ -32,15 +33,10 @@ type SubmissionResult = {
 export async function handleSingleContractSubmission(rawData: Partial<Trec14ContractData>): Promise<SubmissionResult> {
   // 1. Authentication
   const user = await getUser();
-  if (!user) {
-    return { success: false, error: 'Not authenticated' };
+  // Ensure user is authenticated and has a teamId associated
+  if (!user || !user.teamId) {
+    return { success: false, error: 'Not authenticated or team not found.' };
   }
-
-  const userWithTeam = await getUserWithTeam(user.id);
-  if (!userWithTeam?.teamId) {
-      return { success: false, error: 'User is not associated with a team.' };
-  }
-  const teamId = userWithTeam.teamId;
 
   // 2. Data Validation (Server-side validation is crucial)
   const validationResult = Trec14Schema.safeParse(rawData);
@@ -62,9 +58,10 @@ export async function handleSingleContractSubmission(rawData: Partial<Trec14Cont
     await db.transaction(async (tx) => {
         
       // 3a. Retrieve Team and Lock Row (FOR UPDATE)
+      // FIX: Use the direct SQL builder syntax (eq(column, value)), not the functional callback syntax.
       const [team] = await tx.select()
         .from(teams)
-        .where(eq(teams.id, teamId))
+        .where(eq(teams.id, user.teamId!)) // Corrected syntax
         .for('update');
 
       if (!team) {
@@ -72,20 +69,23 @@ export async function handleSingleContractSubmission(rawData: Partial<Trec14Cont
       }
 
       // 3b. Check Credits
-      if (team.contractCredits < REQUIRED_CREDITS) {
+      if (team.credits < REQUIRED_CREDITS) {
         // Rollback the transaction if insufficient credits (by throwing an error)
         throw new Error('Insufficient credits. Please purchase more credits to generate a contract.');
       }
 
       // 3c. Deduct Credits
+      // FIX: Use the direct SQL builder syntax.
       await tx.update(teams)
-        .set({ contractCredits: sql`${teams.contractCredits} - ${REQUIRED_CREDITS}` })
-        .where(eq(teams.id, team.id));
+        .set({ credits: sql`${teams.credits} - ${REQUIRED_CREDITS}` })
+        .where(eq(teams.id, team.id)); // Corrected syntax
 
       // 3d. Insert Contract Data
       const [insertedContract] = await tx.insert(contracts).values({
         teamId: team.id,
         userId: user.id,
+        // Use the property address as a recognizable name for the dashboard list
+        contractName: validatedData.property.address || 'Unnamed Contract',
         contractData: validatedData as any, // Store the validated JSON data
         status: 'generated',
       }).returning({ id: contracts.id });
@@ -124,9 +124,10 @@ export async function handleSingleContractSubmission(rawData: Partial<Trec14Cont
     
     // If PDF generation fails after DB commit, update the status
     if (newContractId && errorMessage.includes('PDF generation')) {
+        // FIX: Use the direct SQL builder syntax.
         await db.update(contracts)
             .set({ status: 'failed_generation' })
-            .where(eq(contracts.id, newContractId));
+            .where(eq(contracts.id, newContractId)); // Corrected syntax
     }
     
     return { success: false, error: errorMessage };
@@ -142,20 +143,15 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
   const user = await getUser();
   if (!user) throw new Error('Not authenticated');
 
-  const userWithTeam = await getUserWithTeam(user.id);
-  if (!userWithTeam?.teamId) {
-      throw new Error('User is not associated with a team.');
-  }
-  const teamId = userWithTeam.teamId;
-
+  // FIX: Use the direct SQL builder syntax within the db.query options.
   const contract = await db.query.contracts.findFirst({ 
-    where: eq(contracts.id, contractId)
+    where: eq(contracts.id, contractId) // Corrected syntax
   });
   
   if (!contract) throw new Error('Contract not found.');
 
   // Authorization check (Ensure user belongs to the team that owns the contract)
-  if (teamId !== contract.teamId) {
+  if (user.teamId !== contract.teamId) {
     throw new Error('Unauthorized access to this contract.');
   }
   

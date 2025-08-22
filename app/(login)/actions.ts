@@ -289,86 +289,30 @@ export const inviteTeamMember = validatedActionWithUser(
 // --- END: Existing Actions ---
 
 
-// --- THIS IS THE NEW, REFACTORED ACTION ---
-const processCsvSchema = z.object({
-  csvFile: z.any().refine(file => file?.size > 0, 'CSV file is required.'),
-});
+// ====================================================================================
+// DEPRECATED - Replaced by handleSingleContractSubmission in app/(dashboard)/dashboard/contracts/actions.ts
+// ====================================================================================
+/*
+import { Trec14Schema } from '@/lib/contracts/validation';
+import { transformCsvRowToContractData } from '@/lib/contracts/transformation';
+import Papa from 'papaparse';
+// ... other CSV related imports
 
-export const processCsvFile = validatedActionWithUser(
-  processCsvSchema,
-  async (data, formData, user) => {
-    const file = formData.get('csvFile') as File;
+export type CsvUploadState = {
+  success: boolean;
+  message: string;
+  contractsCreated?: number;
+  errors?: Array<{ row: number; issues: string[] }>;
+};
 
-    // 1. Authorization & Parsing
-    const userWithTeam = await getUserWithTeam(user.id);
-    if (!userWithTeam?.teamId) {
-      return { error: 'Authentication error: Could not find your team information.' };
-    }
-    const team = await db.query.teams.findFirst({ where: eq(teams.id, userWithTeam.teamId) });
-    if (!team) {
-      return { error: 'Database error: Could not load your team data.' };
-    }
-    
-    const csvText = await file.text();
-    const parsedCsv = Papa.parse(csvText, { header: true, skipEmptyLines: true });
-    const rows = parsedCsv.data as Record<string, string>[];
-
-    if (rows.length === 0) {
-      return { error: 'The uploaded CSV file has no data rows.' };
-    }
-
-    // 2. Credit Check
-    const requiredCredits = rows.length;
-    if (team.contractCredits < requiredCredits) {
-      return { error: `You do not have enough credits. This upload requires ${requiredCredits} credits, but you only have ${team.contractCredits}.` };
-    }
-
-    // 3. Iteration, Transformation, and Validation
-    const validationErrors: string[] = [];
-    const validatedData: Trec14ContractData[] = [];
-
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      const transformedJson = mapCsvRowToJson(row);
-      const result = Trec14Schema.safeParse(transformedJson);
-
-      if (!result.success) {
-        // Format Zod errors for user-friendliness
-        const formattedErrors = result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
-        validationErrors.push(`Row ${i + 2}: ${formattedErrors}`); // i + 2 accounts for header row and 0-index
-      } else {
-        validatedData.push(result.data);
-      }
-    }
-
-    // 4. Error Handling
-    if (validationErrors.length > 0) {
-      return { error: 'Validation failed. Please correct the errors in your CSV and try again.', validationErrors };
-    }
-
-    // 5. Atomic Transaction
-    try {
-      const newCreditTotal = team.contractCredits - requiredCredits;
-      await db.transaction(async (tx) => {
-        // Persist new contracts
-        const newContractsToInsert = validatedData.map(data => ({
-          teamId: team.id,
-          userId: user.id,
-          contractData: data, // Storing the validated JSON object
-        }));
-        
-        if (newContractsToInsert.length > 0) {
-            await tx.insert(contracts).values(newContractsToInsert);
-        }
-
-        // Deduct credits
-        await tx.update(teams).set({ contractCredits: newCreditTotal }).where(eq(teams.id, team.id));
-      });
-      // 6. Success
-      return { success: `Successfully validated and saved ${requiredCredits} contracts. Your new credit balance is ${newCreditTotal}.` };
-    } catch (e: any) {
-      console.error("Database transaction failed:", e);
-      return { error: 'A database error occurred while saving your contracts. Please try again.' };
-    }
-  }
-);
+export async function processCsvFile(
+  prevState: CsvUploadState,
+  formData: FormData
+): Promise<CsvUploadState> {
+  // ... (The entire implementation of processCsvFile is commented out)
+  // This includes CSV parsing (PapaParse), Zod validation loops, credit deduction transactions,
+  // and database insertion related to bulk uploads.
+  
+  // return { success: true, message: 'Contracts processed successfully.', contractsCreated: successfulInserts };
+}
+*/
