@@ -10,7 +10,7 @@ const nextConfig = {
     ],
   },
   experimental: {
-    nodeMiddleware: true,
+    nodeMiddleware: false,
   },
 };
 
