@@ -1,4 +1,6 @@
-'use client';
+// In /app/(dashboard)/dashboard/billing/page.tsx
+
+'use client'; // <-- THIS MUST BE THE FIRST LINE
 
 export const dynamic = 'force-dynamic';
 
@@ -71,7 +73,7 @@ function CreditPack({ credits, price, discount, priceId }: { credits: number; pr
   );
 }
 
-function Billing() {
+export default function BillingPage() {
   const { mutate } = useSWRConfig();
   const searchParams = useSearchParams();
   const success = searchParams.get('success');
@@ -114,13 +116,5 @@ function Billing() {
         </Card>
       </div>
     </section>
-  );
-}
-
-export default function BillingPage() {
-  return (
-    <Suspense fallback={<div className="w-full h-full flex items-center justify-center"><p>Loading...</p></div>}>
-      <Billing />
-    </Suspense>
   );
 }
