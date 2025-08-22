@@ -15,7 +15,6 @@ import { validatedActionWithUser } from '@/lib/auth/middleware';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-// THIS FUNCTION IS NOW CORRECTED
 export async function generateContractAction(contractId: number): Promise<Uint8Array> {
   const user = await getUser();
   if (!user) {
@@ -107,8 +106,6 @@ export async function generateContractAction(contractId: number): Promise<Uint8A
   return await pdfDoc.save();
 }
 
-
-// THIS IS THE NEW FUNCTION FOR YOUR WEB FORM
 const singleContractFormSchema = z.object({
   seller: z.string().min(1, 'Seller name is required.'),
   buyer: z.string().min(1, 'Buyer name is required.'),
@@ -117,7 +114,8 @@ const singleContractFormSchema = z.object({
 
 export const handleSingleContractSubmission = validatedActionWithUser(
   singleContractFormSchema,
-  async (data, user) => {
+  // THIS LINE IS THE FIX: We now accept all three arguments
+  async (data, _formData, user) => {
     const userWithTeam = await getUserWithTeam(user.id);
     if (!userWithTeam?.teamId) {
       return { error: 'Team not found for user.' };
@@ -132,13 +130,11 @@ export const handleSingleContractSubmission = validatedActionWithUser(
       return { error: 'You do not have enough credits to generate a contract.' };
     }
 
-    // Transform the simple form data into the complex, nested Trec14Schema structure
     const contractDataForDb: Trec14ContractData = {
       parties: {
         seller: data.seller,
         buyer: data.andOrAssigns === 'on' ? `${data.buyer} and/or assigns` : data.buyer,
       },
-      // Set default empty values for all other required fields
       property: { lot: null, block: null, addition: null, city: null, county: null, address: null, exclusions: { part1: null, part2: null }, hoaStatus: null, requiredNotices: null },
       price: { cashPortion: null, financeAmount: null, salesPrice: null },
       financing: { thirdParty: false, loanAssumption: false, seller: false },
@@ -163,12 +159,10 @@ export const handleSingleContractSubmission = validatedActionWithUser(
 
     try {
       await db.transaction(async (tx) => {
-        // 1. Deduct one credit
         await tx.update(teams).set({
           contractCredits: sql`${teams.contractCredits} - 1`
         }).where(eq(teams.id, userWithTeam.teamId!));
 
-        // 2. Save the new contract
         await tx.insert(contracts).values({
           teamId: userWithTeam.teamId!,
           userId: user.id,
