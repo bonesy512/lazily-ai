@@ -80,6 +80,19 @@ export const teamContractDefaults = pgTable('team_contract_defaults', {
 
 // --- APPLICATION-SPECIFIC TABLES ---
 
+// NEW TABLE DEFINITION to resolve the compiler warning/missing export
+export const properties = pgTable('properties', {
+    id: serial('id').primaryKey(),
+    teamId: integer('team_id').notNull().references(() => teams.id, { onDelete: 'cascade' }),
+    // Example fields - customize these as needed for your application
+    address: varchar('address', { length: 255 }).notNull(),
+    propertyType: varchar('property_type', { length: 50 }), 
+    salePrice: integer('sale_price'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    deletedAt: timestamp('deleted_at'),
+});
+
 export const contracts = pgTable('contracts', {
     id: serial('id').primaryKey(),
     teamId: integer('team_id').notNull().references(() => teams.id, { onDelete: 'cascade' }),
@@ -139,6 +152,11 @@ export const usersRelations = relations(users, ({ many }) => ({
   contracts: many(contracts),
 }));
 
+export const propertiesRelations = relations(properties, ({ one, many }) => ({
+    team: one(teams, { fields: [properties.teamId], references: [teams.id] }),
+    // contracts: many(contracts), // uncomment if you link contracts to properties
+}));
+
 export const teamContractDefaultsRelations = relations(teamContractDefaults, ({ one }) => ({
   team: one(teams, {
     fields: [teamContractDefaults.teamId],
@@ -175,6 +193,10 @@ export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
 
 
 // --- TYPES ---
+
+// NEW TYPES for properties
+export type Property = typeof properties.$inferSelect;
+export type NewProperty = typeof properties.$inferInsert;
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;

@@ -3,9 +3,10 @@
 import { desc, and, eq, isNull } from 'drizzle-orm';
 import { db } from './drizzle';
 // Import table objects (values)
-import { activityLogs, teamMembers, teams, users, contracts, ActivityType, User } from './schema';
+// 💡 FIX 1: Added 'properties' and its type 'Property' and 'NewProperty' to imports
+import { activityLogs, teamMembers, teams, users, contracts, ActivityType, User, properties } from './schema';
 // Import TypeScript types separately for clarity
-import type { Contract, Trec14ContractData } from './schema';
+import type { Contract, Trec14ContractData, Property, NewProperty } from './schema';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/auth/session';
 
@@ -188,4 +189,9 @@ export async function createActivityLog({
     action,
     ipAddress,
   });
+}
+
+// 💡 NEW FUNCTION: Placeholder for future property queries, demonstrating use of new types
+export async function createProperty(newProperty: NewProperty) {
+    return await db.insert(properties).values(newProperty).returning();
 }
