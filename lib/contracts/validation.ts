@@ -1,8 +1,5 @@
-// lib/contracts/validation.ts
-
 import { z } from 'zod';
 
-// This is the final, corrected schema, matching your custom PDF fields and choices.
 export const Trec14Schema = z.object({
   parties: z.object({
     seller: z.string().optional().nullable(),
@@ -139,6 +136,26 @@ export const Trec14Schema = z.object({
         phone: z.string().optional().nullable(),
       }),
     }),
+    // --- ADDED a new object for the 'Selling Associate' fields ---
+    selling: z.object({
+        associate: z.object({
+            name: z.string().optional().nullable(),
+            licenseNo: z.string().optional().nullable(),
+            teamName: z.string().optional().nullable(),
+            email: z.string().optional().nullable(),
+            phone: z.string().optional().nullable()
+        }).optional(),
+        supervisor: z.object({
+            name: z.string().optional().nullable(),
+            licenseNo: z.string().optional().nullable()
+        }).optional(),
+        address: z.object({
+            street: z.string().optional().nullable(),
+            city: z.string().optional().nullable(),
+            state: z.string().optional().nullable(),
+            zip: z.string().optional().nullable()
+        }).optional()
+    }).optional().nullable(),
     disclosure: z.object({
       fee: z.object({
         dollarAmount: z.string().optional().nullable(),
@@ -192,6 +209,9 @@ export const Trec14Schema = z.object({
         '2': z.string().optional().nullable(),
       }),
     }),
+    // --- ADDED agent-specific notice fields ---
+    buyerAgent: z.object({ contactInfo: z.string().optional().nullable() }).optional().nullable(),
+    sellerAgent: z.object({ contactInfo: z.string().optional().nullable() }).optional().nullable(),
   }),
   addenda: z.object({
     thirdPartyFinancing: z.boolean().optional(),

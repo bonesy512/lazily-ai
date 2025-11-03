@@ -12,6 +12,8 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
+// --- CORE TABLES ---
+
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }),
@@ -39,30 +41,49 @@ export const teams = pgTable('teams', {
   subscriptionStatus: varchar('subscription_status', { length: 20 }),
 });
 
-export const owners = pgTable('owners', {
+export const teamMembers = pgTable('team_members', {
   id: serial('id').primaryKey(),
-  teamId: integer('team_id').notNull().references(() => teams.id),
-  fullName: varchar('full_name', { length: 255 }),
-  mailingAddress: text('mailing_address'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  teamId: integer('team_id').notNull().references(() => teams.id, { onDelete: 'cascade' }),
+  role: varchar('role', { length: 50 }).notNull(),
+  joinedAt: timestamp('joined_at').notNull().defaultNow(),
 });
 
-export const properties = pgTable('properties', {
-  id: serial('id').primaryKey(),
-  teamId: integer('team_id').notNull().references(() => teams.id),
-  ownerId: integer('owner_id').references(() => owners.id),
-  streetAddress: varchar('street_address', { length: 255 }),
-  city: varchar('city', { length: 100 }),
-  zipCode: varchar('zip_code', { length: 20 }),
-  offerPrice: varchar('offer_price', { length: 50 }),
-  status: varchar('status', { length: 50 }).default('pending'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
+// --- UPDATED DEFAULTS TABLE ---
+export const teamContractDefaults = pgTable('team_contract_defaults', {
+    id: serial('id').primaryKey(),
+    teamId: integer('team_id').notNull().references(() => teams.id, { onDelete: 'cascade' }).unique(),
+    
+    // Listing Broker / Agent Details
+    listingFirmName: varchar('listing_firm_name'),
+    listingFirmLicenseNo: varchar('listing_firm_license_no'),
+    listingAssociateName: varchar('listing_associate_name'),
+    listingAssociateLicenseNo: varchar('listing_associate_license_no'),
+    listingAssociateEmail: varchar('listing_associate_email'),
+    listingAssociatePhone: varchar('listing_associate_phone'),
+    listingSupervisorName: varchar('listing_supervisor_name'),
+    listingSupervisorLicenseNo: varchar('listing_supervisor_license_no'),
+    listingBrokerAddress: varchar('listing_broker_address'),
+
+    // Other Broker Details (Typically for Buyer's Agent)
+    otherFirmName: varchar('other_firm_name'),
+    otherFirmLicenseNo: varchar('other_firm_license_no'),
+    otherAssociateName: varchar('other_associate_name'),
+    otherAssociateLicenseNo: varchar('other_associate_license_no'),
+
+    // Other Defaults
+    escrowAgentName: varchar('escrow_agent_name'),
+    
+    // Timestamps
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
+
+// --- APPLICATION-SPECIFIC TABLES ---
 
 export const contracts = pgTable('contracts', {
     id: serial('id').primaryKey(),
-    teamId: integer('team_id').notNull().references(() => teams.id),
-    userId: integer('user_id').notNull().references(() => users.id),
+    teamId: integer('team_id').notNull().references(() => teams.id, { onDelete: 'cascade' }),
+    userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
     contractData: jsonb('contract_data').notNull(),
     status: varchar('status', { length: 50 }).default('pending_generation'),
     generatedAt: timestamp('generated_at').notNull().defaultNow(),
@@ -71,25 +92,17 @@ export const contracts = pgTable('contracts', {
 
 export const creditPurchases = pgTable('credit_purchases', {
     id: serial('id').primaryKey(),
-    teamId: integer('team_id').notNull().references(() => teams.id),
+    teamId: integer('team_id').notNull().references(() => teams.id, { onDelete: 'cascade' }),
     creditsPurchased: integer('credits_purchased').notNull(),
     amountPaid: integer('amount_paid'),
     stripeCheckoutSessionId: text('stripe_checkout_session_id').notNull().unique(),
     createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-export const teamMembers = pgTable('team_members', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id').notNull().references(() => users.id),
-  teamId: integer('team_id').notNull().references(() => teams.id),
-  role: varchar('role', { length: 50 }).notNull(),
-  joinedAt: timestamp('joined_at').notNull().defaultNow(),
-});
-
 export const activityLogs = pgTable('activity_logs', {
   id: serial('id').primaryKey(),
-  teamId: integer('team_id').notNull().references(() => teams.id),
-  userId: integer('user_id').references(() => users.id),
+  teamId: integer('team_id').notNull().references(() => teams.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
   action: text('action').notNull(),
   timestamp: timestamp('timestamp').notNull().defaultNow(),
   ipAddress: varchar('ip_address', { length: 45 }),
@@ -97,24 +110,27 @@ export const activityLogs = pgTable('activity_logs', {
 
 export const invitations = pgTable('invitations', {
   id: serial('id').primaryKey(),
-  teamId: integer('team_id').notNull().references(() => teams.id),
+  teamId: integer('team_id').notNull().references(() => teams.id, { onDelete: 'cascade' }),
   email: varchar('email', { length: 255 }).notNull(),
   role: varchar('role', { length: 50 }).notNull(),
-  invitedBy: integer('invited_by').notNull().references(() => users.id),
+  invitedBy: integer('invited_by').notNull().references(() => users.id, { onDelete: 'cascade' }),
   invitedAt: timestamp('invited_at').notNull().defaultNow(),
   status: varchar('status', { length: 20 }).notNull().default('pending'),
 });
 
+
 // --- RELATIONS ---
 
-export const teamsRelations = relations(teams, ({ many }) => ({
+export const teamsRelations = relations(teams, ({ many, one }) => ({
   teamMembers: many(teamMembers),
   activityLogs: many(activityLogs),
   invitations: many(invitations),
-  properties: many(properties),
-  owners: many(owners),
   contracts: many(contracts),
   creditPurchases: many(creditPurchases),
+  contractDefaults: one(teamContractDefaults, {
+    fields: [teams.id],
+    references: [teamContractDefaults.teamId],
+  }),
 }));
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -123,22 +139,17 @@ export const usersRelations = relations(users, ({ many }) => ({
   contracts: many(contracts),
 }));
 
-export const ownersRelations = relations(owners, ({ one, many }) => ({
-  team: one(teams, { fields: [owners.teamId], references: [teams.id] }),
-  properties: many(properties),
+export const teamContractDefaultsRelations = relations(teamContractDefaults, ({ one }) => ({
+  team: one(teams, {
+    fields: [teamContractDefaults.teamId],
+    references: [teams.id],
+  }),
 }));
 
-export const propertiesRelations = relations(properties, ({ one }) => ({
-  team: one(teams, { fields: [properties.teamId], references: [teams.id] }),
-  owner: one(owners, { fields: [properties.ownerId], references: [owners.id] }),
-}));
-
-// --- THIS IS THE CORRECTED SECTION ---
 export const contractsRelations = relations(contracts, ({ one }) => ({
   team: one(teams, { fields: [contracts.teamId], references: [teams.id] }),
   user: one(users, { fields: [contracts.userId], references: [users.id] }),
 }));
-// --- END OF CORRECTED SECTION ---
 
 export const creditPurchasesRelations = relations(creditPurchases, ({ one }) => ({
     team: one(teams, {
@@ -162,20 +173,18 @@ export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
   user: one(users, { fields: [activityLogs.userId], references: [users.id] }),
 }));
 
+
 // --- TYPES ---
-// (No changes in this section)
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Team = typeof teams.$inferSelect;
 export type NewTeam = typeof teams.$inferInsert;
-export type Property = typeof properties.$inferSelect;
-export type NewProperty = typeof properties.$inferInsert;
-export type Owner = typeof owners.$inferSelect;
-export type NewOwner = typeof owners.$inferInsert;
+export type TeamContractDefaults = typeof teamContractDefaults.$inferSelect;
+export type NewTeamContractDefaults = typeof teamContractDefaults.$inferInsert;
 export type Contract = typeof contracts.$inferSelect;
 export type NewContract = typeof contracts.$inferInsert;
-export type Trec14ContractData = any; // Placeholder until we can import from validation.ts
+export type Trec14ContractData = any;
 export type CreditPurchase = typeof creditPurchases.$inferSelect;
 export type NewCreditPurchase = typeof creditPurchases.$inferInsert;
 export type TeamMember = typeof teamMembers.$inferSelect;
@@ -184,6 +193,7 @@ export type ActivityLog = typeof activityLogs.$inferSelect;
 export type NewActivityLog = typeof activityLogs.$inferInsert;
 export type Invitation = typeof invitations.$inferSelect;
 export type NewInvitation = typeof invitations.$inferInsert;
+
 export type TeamDataWithMembers = Team & {
   teamMembers: (TeamMember & {
     user: Pick<User, 'id' | 'name' | 'email'>;
@@ -191,18 +201,9 @@ export type TeamDataWithMembers = Team & {
 };
 
 export enum ActivityType {
-  SIGN_UP = 'SIGN_UP',
-  SIGN_IN = 'SIGN_IN',
-  SIGN_OUT = 'SIGN_OUT',
-  UPDATE_PASSWORD = 'UPDATE_PASSWORD',
-  DELETE_ACCOUNT = 'DELETE_ACCOUNT',
-  UPDATE_ACCOUNT = 'UPDATE_ACCOUNT',
-  CREATE_TEAM = 'CREATE_TEAM',
-  REMOVE_TEAM_MEMBER = 'REMOVE_TEAM_MEMBER',
-  INVITE_TEAM_MEMBER = 'INVITE_TEAM_MEMBER',
-  ACCEPT_INVITATION = 'ACCEPT_INVITATION',
-  MEMBERSHIP_PURCHASE = 'MEMBERSHIP_PURCHASE',
-  MEMBERSHIP_RENEWAL = 'MEMBERSHIP_RENEWAL',
-  CREDIT_PURCHASE = 'CREDIT_PURCHASE',
-  CONTRACT_GENERATED = 'CONTRACT_GENERATED',
+  SIGN_UP = 'SIGN_UP', SIGN_IN = 'SIGN_IN', SIGN_OUT = 'SIGN_OUT',
+  UPDATE_PASSWORD = 'UPDATE_PASSWORD', DELETE_ACCOUNT = 'DELETE_ACCOUNT', UPDATE_ACCOUNT = 'UPDATE_ACCOUNT',
+  CREATE_TEAM = 'CREATE_TEAM', REMOVE_TEAM_MEMBER = 'REMOVE_TEAM_MEMBER', INVITE_TEAM_MEMBER = 'INVITE_TEAM_MEMBER',
+  ACCEPT_INVITATION = 'ACCEPT_INVITATION', MEMBERSHIP_PURCHASE = 'MEMBERSHIP_PURCHASE', MEMBERSHIP_RENEWAL = 'MEMBERSHIP_RENEWAL',
+  CREDIT_PURCHASE = 'CREDIT_PURCHASE', CONTRACT_GENERATED = 'CONTRACT_GENERATED',
 }

@@ -36,6 +36,20 @@
       "when": 1754411170626,
       "tag": "0004_lonely_lethal_legion",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1760637511264,
+      "tag": "0005_orange_reaper",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1760639701368,
+      "tag": "0006_nifty_toad",
+      "breakpoints": true
     }
   ]
 }

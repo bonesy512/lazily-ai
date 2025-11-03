@@ -1,10 +1,12 @@
+// app/(dashboard)/dashboard/layout.tsx
+
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Users, Settings, Shield, Activity, Menu, FileText, CreditCard } from 'lucide-react';
+import { Users, Settings, Shield, Activity, Menu, FileText, CreditCard, Cog } from 'lucide-react'; // Added Cog icon
 
 export default function DashboardLayout({
   children
@@ -14,9 +16,11 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // UPDATED: Added "Contract Defaults" to the navigation
   const navItems = [
     { href: '/dashboard/contracts', icon: FileText, label: 'Contracts' },
     { href: '/dashboard/billing', icon: CreditCard, label: 'Billing' },
+    { href: '/dashboard/settings/defaults', icon: Cog, label: 'Contract Defaults' }, // New Item
     { href: '/dashboard', icon: Users, label: 'Team Settings' },
     { href: '/dashboard/general', icon: Settings, label: 'General' },
     { href: '/dashboard/activity', icon: Activity, label: 'Activity' },
@@ -41,18 +45,16 @@ export default function DashboardLayout({
       </div>
 
       <div className="flex flex-1 h-full">
-        {/* START: Added overlay for mobile menu */}
         {isSidebarOpen && (
           <div
             className="fixed inset-0 z-40 bg-black/50 lg:hidden"
             onClick={() => setIsSidebarOpen(false)}
           />
         )}
-        {/* END: Added overlay for mobile menu */}
         
         {/* Sidebar */}
         <aside
-          className={`w-64 bg-card lg:bg-background/50 border-r border-border lg:block fixed inset-y-0 left-0 z-100 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
+          className={`w-64 bg-card lg:bg-background/50 border-r border-border lg:block fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -60,9 +62,9 @@ export default function DashboardLayout({
             {navItems.map((item) => (
               <Link key={item.href} href={item.href} passHref>
                 <Button
-                  variant={pathname === item.href ? 'secondary' : 'ghost'}
+                  variant={pathname.startsWith(item.href) && item.href !== '/dashboard' || pathname === item.href ? 'secondary' : 'ghost'}
                   className="shadow-none my-1 w-full justify-start gap-2"
-                  onClick={() => setIsSidebarOpen(false)} // Close menu on link click
+                  onClick={() => setIsSidebarOpen(false)}
                 >
                   <item.icon className="h-4 w-4" />
                   {item.label}
@@ -73,7 +75,7 @@ export default function DashboardLayout({
         </aside>
 
         {/* Main content */}
-        <div className="flex-1 lg:pl-64"> {/* Added padding to prevent content from going under the sidebar on desktop */}
+        <div className="flex-1">
             <main className="p-4 lg:p-8">
                 {children}
             </main>

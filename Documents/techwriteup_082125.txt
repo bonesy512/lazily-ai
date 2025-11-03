@@ -1,0 +1,40 @@
+Technical Write-Up: Full-Stack Data-Flow Debugging and Correction
+Overview
+Today, we performed a comprehensive, end-to-end debugging and correction of the data pipeline for the contract generation feature. The initial problem was that generated PDF documents were missing a significant amount of data, despite a seemingly correct CSV upload. Our investigation revealed multiple, cascading issues in the data transformation, database persistence, and PDF generation logic.
+
+Initial State
+The application was successfully processing CSV uploads, but the final output was incorrect. The core components involved were:
+
+Front-End: A CSV upload form (CsvUploadForm.tsx).
+Back-End Logic (Server Actions): An action to process the CSV (processCsvFile), a data transformation function (mapCsvRowToJson), a Zod schema for validation (Trec14Schema), database queries (queries.ts), and a PDF generation action (generateContractAction).
+Database: A PostgreSQL database managed with Drizzle ORM, with a contracts table to store the structured data.
+Problem Diagnosis and Resolution
+We systematically worked through the entire data flow, identifying and correcting issues at each stage.
+
+1. Data Transformation (lib/contracts/transformation.ts)
+
+Problem: The mapCsvRowToJson function, which is responsible for converting a row from the CSV into a structured JSON object, was massively incomplete. A majority of the fields were hardcoded to null, meaning that even with a perfect CSV, the data was being discarded at the first step.
+Resolution: We meticulously completed the mapCsvRowToJson function, ensuring that every column in the CSV is now correctly mapped to its corresponding field in the Trec14ContractData object.
+2. Database Persistence (lib/db/queries.ts & app/(login)/actions.ts)
+
+Problem: Our initial investigation suggested that the function to save the contract data to the database was missing entirely. However, a deeper look into the processCsvFile server action revealed that the database insertion logic did exist but was being called with the incomplete data from the faulty transformation function.
+Resolution: After correcting the transformation function, we confirmed that the existing database insertion logic in app/(login)/actions.ts was sound. It correctly uses a database transaction to loop through the validated data, save each contract, and deduct the appropriate number of credits from the user's team. We added a createContract function to queries.ts to better organize the code and make it more maintainable.
+3. PDF Generation (app/(dashboard)/dashboard/contracts/actions.ts)
+
+Problem: This was the final and most significant bottleneck. Similar to the transformation function, the generateContractAction was also severely incomplete. It was correctly retrieving the full JSON object from the database, but it was only using a small fraction of that data to fill in the PDF form fields.
+Resolution: We completed the generateContractAction by adding the necessary fillText and check calls for every field defined in the Trec14Schema. This ensures that all the data that has been successfully transformed and saved is now used to populate the PDF document.
+Current Standing
+The application's data pipeline for contract generation is now robust and complete. The flow is as follows:
+
+A user uploads a CSV file.
+The processCsvFile server action parses the file.
+Each row is transformed into a complete JSON object by the mapCsvRowToJson function.
+The JSON object is validated against the Trec14Schema.
+The validated data is saved to the contracts table in the database.
+When a user requests a download, the generateContractAction retrieves the full data from the database and uses it to populate every corresponding field in the PDF template.
+Next Steps
+As you noted, the final step is to adjust the physical location of the form fields in your PDF template using a tool like Adobe Acrobat. Once you have updated the field locations, you will need to:
+
+Replace the existing TREC-20-18-automated-v1.pdf file in the lib/templates directory with your new version.
+Update the lazily-ai-template.csv in the public/templates directory to match any changes in column names or order, if any.
+After these two files are updated, the system should be fully operational and produce perfectly formatted contracts.

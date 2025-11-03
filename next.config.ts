@@ -9,9 +9,6 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    nodeMiddleware: false,
-  },
 };
 
 export default nextConfig;

@@ -1,0 +1,53 @@
+Impromptu Google Meet Meeting - August 21
+VIEW RECORDING: https://fathom.video/share/_UD_-K2Ydfwbq-jCtzqs88UPdQUkZQxS
+Meeting Purpose
+
+Discuss and refine the user interface for a real estate contract generation tool.
+
+Key Takeaways
+
+  - Current template-based system (70+ fields in spreadsheet) is not user-friendly for realtors
+  - Shift focus from bulk processing to individual contract creation with pre-populated fields
+  - Implement a questionnaire-style UI with toggles, buttons, and save options for frequent data
+  - Prioritize ease of use for realtors with varying levels of experience and contract familiarity
+
+Topics
+
+Current System Overview
+
+  - $10/month subscription model with credit system
+  - Template available for download (Google Sheets/Excel)
+  - 70+ fields to fill out, including repetitive information
+  - Bulk upload feature available but may not be widely used
+  - PDF generation from uploaded data
+
+User Interface Concerns
+
+  - Spreadsheet template not intuitive for average users
+  - True/False inputs for certain fields (e.g., addenda) may confuse users
+  - Text cutoff issues in generated PDFs need addressing
+  - Bulk processing may not be necessary for most users (1 contract/week or month)
+
+Proposed UI Improvements
+
+  - Implement a questionnaire-style form for data entry
+  - Add toggle switches and buttons for binary choices (e.g., "buyer pays title policy")
+  - Include "save for future use" options for frequently repeated data
+  - Pre-populate ~70% of fields based on user's standard contract info
+  - Focus on changing only necessary fields (e.g., sales price, earnest money) for each contract
+
+User Perspectives
+
+  - Trent (realtor): Supports questionnaire approach for ease of use
+  - Anthony: Suggests saving seller info, using buttons for binary choices, and pre-populating standard fields
+  - Thomas: Recognizes need for more user-friendly interface, especially for less tech-savvy realtors
+
+Next Steps
+
+  - Redesign UI to incorporate questionnaire-style form with toggles and buttons
+  - Implement save feature for frequently used data
+  - Create initial setup process to gather user's standard contract information
+  - Address PDF generation issues (text cutoff, field alignment)
+  - Reconvene in a few days to review updated design
+Action Items
+  - Redesign UI for contract gen system - questionnaire format, pre-fill options, toggles for saving common info. Prepare for review in few days.  - WATCH (5 secs): https://fathom.video/share/_UD_-K2Ydfwbq-jCtzqs88UPdQUkZQxS?timestamp=805.9999

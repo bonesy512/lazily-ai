@@ -1,12 +1,16 @@
-// app/(dashboard)/layout.tsx
+// app/(marketing)/layout.tsx
 
 import Header from "@/components/layout/Header";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function MarketingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <section className="flex flex-col min-h-screen">
       <Header />
-      {children}
+      <main>{children}</main>
     </section>
   );
 }

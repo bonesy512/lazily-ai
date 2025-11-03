@@ -1,0 +1,63 @@
+Lazily.AI Brand Guidelines
+Version 1.0 Date: July 28, 2025
+1. Brand Essence
+At its core, Lazily.AI is about Effortless Intelligence. Our brand is built on the clever juxtaposition of being "lazy" in effort but powerful in results. We provide a smart, automated advantage to real estate professionals, allowing them to achieve maximum output with minimum friction.
+• Mission: To eliminate the most tedious parts of real estate transactions through intelligent automation, giving our users back their most valuable asset: time.
+• Vision: To be the indispensable contract engine for every real estate professional in Texas.
+• Brand Personality: Clever, Confident, Efficient, Approachable, and Trustworthy.
+2. Logo
+Our brand is represented by two primary logo assets: the Mascot Logo and the Wordmark.
+Mascot Logo
+The full logo, including the sloth mascot, the name, and the tagline.
+• Primary Use: Use the full mascot logo on the homepage hero section, social media profiles, and in marketing materials where brand personality is key.
+• Clear Space: Always maintain a clear space around the logo equal to the height of the "L" in "LAZILY.AI". Do not crowd the logo with other elements.
+Wordmark
+The text-only version of the logo.
+• Primary Use: Use the wordmark in the website navigation header, on documents, and in situations where a more compact, professional mark is required.
+Mascot Icon
+The sloth icon can be used on its own as a favicon or as a user avatar.
+3. Color Palette
+Our color palette is warm, professional, and inspired by the tones of coffee and natural materials, reflecting both productivity and approachability.
+• Primary (Action Color)
+• #D9A168 (Warm Tan)
+• Usage: Primary buttons, links, and key calls-to-action.
+• Secondary (Headings & Strong Accents)
+• #4A3F3A (Deep Coffee Brown)
+• Usage: Main headlines, important text, secondary buttons.
+• Neutrals (The Foundation)
+• #FCFAF8 (Paper White): Main backgrounds.
+• #F6F3F1 (Light Beige): Card backgrounds, subtle contrast.
+• #E1DCD8 (Border Beige): Borders and dividers.
+• #8A817C (Muted Brown): Secondary text, icons, and muted details.
+4. Typography
+Our typography is clean, modern, and highly readable, ensuring a professional and user-friendly experience.
+• Primary Typeface: Manrope
+• Why: Manrope is a modern sans-serif font that is both elegant and highly
+legible on screens. It's available on Google Fonts, making it easy to implement on the web.
+• Headings (H1, H2, H3):
+• Font: Manrope
+• Weight: Bold (700)
+• Color: #4A3F3A (Deep Coffee Brown)
+• Body Text:
+• Font: Manrope
+• Weight: Regular (400)
+• Color: #4A3F3A (Deep Coffee Brown)
+• Links & Buttons:
+• Font: Manrope
+• Weight: Medium (500) or Bold (700)
+5. Voice & Tone
+The Lazily.AI voice is knowledgeable and confident, but also clever and a little playful. We are experts who don't take ourselves too seriously.
+• Tagline: Effortlessly Done.
+• Key Principles:
+• Be Clear & Concise: Get straight to the point. Avoid jargon where possible.
+• Be Benefit-Driven: Always focus on the outcome for the user (saving time,
+reducing errors, closing more deals).
+• Be Confident: We are the best at what we do. Our language should reflect
+that.
+• Be Clever, Not Corny: Use wit and wordplay (like "Stop Grinding. Start
+Closing.") but avoid clichés and unprofessional humor.
+Example Phrases:
+• Instead of: "Our platform utilizes a proprietary algorithm to process documents."
+• Use: "Our contract engine gets the job done instantly."
+• Instead of: "Purchase more credits to continue."
+• Use: "Need to replenish your credits? Right this way."

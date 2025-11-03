@@ -1,14 +1,13 @@
 // app/(dashboard)/dashboard/contracts/page.tsx
 
-// Removed CsvUploadForm import
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreditsCounter } from "@/components/dashboard/CreditsCounter";
 import { ContractList } from '@/components/dashboard/ContractList';
 import { CreditRefresher } from '@/components/dashboard/CreditRefresher';
+import { CreditsCounter } from '@/components/dashboard/CreditsCounter';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PlusCircle } from 'lucide-react';
+import Link from 'next/link';
 import { Suspense } from 'react';
-// Import the new SingleContractForm
-// Note: The path assumes the structure established in previous phases (components/dashboard/contracts/...)
-import { SingleContractForm } from '@/components/dashboard/contracts/SingleContractForm';
 
 export default async function ContractsPage() {
   return (
@@ -16,33 +15,40 @@ export default async function ContractsPage() {
       <Suspense fallback={null}>
         <CreditRefresher />
       </Suspense>
-      
-      {/* Keep the credit counter visible */}
+
       <div className="grid gap-4 md:grid-cols-4">
+        <div className="md:col-span-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Create a New Contract</CardTitle>
+                <CardDescription>
+                  Use our guided form to generate a single, error-free TREC contract.
+                </CardDescription>
+              </div>
+              <Button asChild>
+                <Link href="/dashboard/contracts/create">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Create New
+                </Link>
+              </Button>
+            </CardHeader>
+          </Card>
+        </div>
         <CreditsCounter />
       </div>
 
-      {/* DEPLOY NEW UI: Render the SingleContractForm */}
-      {/* The form component handles its own internal layout, header, and styling */}
-      <div className="pt-4">
-        <SingleContractForm />
-      </div>
-
-      {/* Existing Contract List remains for viewing history */}
-      {/* We wrap this in a container matching the form's width for visual consistency */}
-      <div className="max-w-5xl mx-auto py-8 px-4">
-        <Card>
-            <CardHeader>
-            <CardTitle>Generated Contracts History</CardTitle>
-            <CardDescription>
-                Contracts you have previously generated will appear here.
-            </CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-            <ContractList />
-            </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Generated Contracts</CardTitle>
+          <CardDescription>
+            Contracts you've created will appear here, ready for download.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <ContractList />
+        </CardContent>
+      </Card>
     </section>
   );
 }
