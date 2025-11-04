@@ -1,55 +1,73 @@
-# Lazily.AI: The Effortless TREC Contract Engine
+Lazily.AI: The Effortless TREC Contract Engine
+Lazily.AI is a specialized SaaS platform built to automate the generation of Texas Real Estate Commission (TREC) 1-4 Family Residential Contracts. Designed for real estate investors, wholesalers, and agents, it allows users to quickly fill out a guided, questionnaire-style web form and instantly generate a single, compliant, filled-out PDF contract.
 
-Lazily.AI is a specialized SaaS platform built to automate the generation of Texas Real Estate Commission (TREC) 1-4 Family Residential Contracts. Designed for real estate investors, wholesalers, and agents, it allows users to upload a CSV of property data and instantly generate hundreds of compliant, filled-out PDF contracts.
+This strategic pivot prioritizes ease of use and error reduction over bulk processing, making the tool instantly accessible to all real estate professionals.
 
 The platform utilizes a hybrid billing model: a low monthly subscription for access and a pay-as-you-go credit system for contract generation.
 
-**Live Site: [https://lazily.ai](https://lazily.ai)**
+Live Site: https://lazily.ai
 
-## Key Features
+✨ Key Features (Updated for Single Form MVP)
+Guided Web Form Entry: Generate contracts using an intuitive, step-by-step questionnaire with toggles and pre-populated defaults, significantly reducing manual data entry and errors.
 
-- **CSV to PDF Automation:** Bulk generate TREC 1-4 contracts from a single spreadsheet upload.
-- **Robust Data Validation:** Backend validation using Zod schemas to ensure CSV data integrity and contract compliance before generation.
-- **Dynamic PDF Generation:** Utilizes `pdf-lib` to programmatically fill and flatten the official TREC PDF template.
-- **Hybrid Payment Model:** Integrates Stripe for both recurring monthly subscriptions (`mode: 'subscription'`) and one-time credit pack purchases (`mode: 'payment'`).
-- **Authentication & Teams:** Secure user accounts (JWT/cookies) with team management and role-based access (Owner/Member).
-- **Dashboard:** Manage generated contracts, monitor available credits, upload CSVs, and handle billing via the Stripe Customer Portal.
-- **Activity Logging:** System for tracking key user events (logins, purchases, contract generations).
+Real-Time Data Validation: Input is validated in real-time against a comprehensive Zod schema to ensure data integrity and contract compliance before submission.
 
-## Tech Stack
+Dynamic PDF Generation: Utilizes pdf-lib to programmatically fill and flatten the official TREC PDF template, ensuring a perfect, ready-to-use document.
 
-- **Framework**: [Next.js](https://nextjs.org/) (App Router, Server Actions)
-- **Database**: [Postgres](https://www.postgresql.org/) (e.g., Vercel Postgres)
-- **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
-- **Payments**: [Stripe](https://stripe.com/)
-- **UI Library**: [shadcn/ui](https://ui.shadcn.com/) & Tailwind CSS
-- **Validation**: [Zod](https://zod.dev/)
-- **CSV Parsing**: [Papa Parse](https://www.papaparse.com/)
-- **PDF Manipulation**: [pdf-lib](https://pdf-lib.js.org/)
+Hybrid Payment Model: Integrates Stripe for both recurring monthly subscriptions (mode: 'subscription') and one-time credit pack purchases (mode: 'payment').
 
-## Core Workflow
+Authentication & Teams: Secure user accounts (JWT/cookies) with team management and role-based access (Owner/Member).
 
-1.  **Upload:** The user uploads a CSV file matching the required template (`public/templates/lazily-ai-template.csv`).
-2.  **Parse & Validate:** The backend parses the CSV (Papa Parse) and validates every row against a comprehensive Zod schema (`lib/contracts/validation.ts`).
-3.  **Credit Check:** The system verifies the team has sufficient credits for the number of rows uploaded.
-4.  **Persist Data:** Validated contract data is saved to the `contracts` table, and credits are deducted within a database transaction.
-5.  **Generate (On-Demand):** When the user clicks "Download," the application retrieves the saved data and generates the PDF using `pdf-lib` and the TREC template (`lib/templates/TREC-20-18-automated-v1.pdf`).
+Dashboard: Manage previously generated contracts, monitor available credits, access the contract creation form, and handle billing via the Stripe Customer Portal.
 
-## Key File Structure
+Activity Logging: System for tracking key user events (logins, purchases, contract generations).
 
-- `lib/db/schema.ts`: Database schema (Users, Teams, Contracts, Credits) and relations.
-- `lib/contracts/validation.ts`: The core Zod schema defining the required TREC 1-4 data structure.
-- `lib/contracts/transformation.ts`: Logic for mapping raw CSV rows to the validated JSON structure.
-- `app/(login)/actions.ts`: Contains the `processCsvFile` Server Action (handles upload, validation, credit deduction, and DB insertion).
-- `app/(dashboard)/dashboard/contracts/actions.ts`: Contains the `generateContractAction` (handles PDF generation using `pdf-lib`).
-- `app/api/stripe/webhook/route.ts`: Handles Stripe events (subscriptions and credit purchases).
-- `lib/payments/stripe.ts`: Stripe API configuration and session creation logic.
+💻 Tech Stack
+Framework: Next.js (App Router, Server Actions)
 
-## Getting Started
+Database: Postgres (e.g., Vercel Postgres)
 
+ORM: Drizzle ORM
+
+Payments: Stripe
+
+UI Library: shadcn/ui & Tailwind CSS
+
+Validation: Zod
+
+PDF Manipulation: pdf-lib
+
+(Removed Papa Parse as CSV is no longer the core input method)
+
+🚀 Core Workflow
+Input: The user fills out the guided, multi-step web form at /dashboard/contracts/create.
+
+Submit & Validate: The form data is sent to a Server Action (handleSingleContractSubmission), where it undergoes comprehensive Zod validation.
+
+Credit Check & Deduct: The system verifies the team has 1 credit available. The contract data is saved to the contracts table, and 1 credit is deducted within a single database transaction.
+
+Generate & Download: The Server Action immediately retrieves the newly saved data and uses pdf-lib to generate the final, filled-out TREC PDF, which is then streamed back to the user for download.
+
+📂 Key File Structure
+lib/db/schema.ts: Database schema (Users, Teams, Contracts, Credits) and relations.
+
+lib/contracts/validation.ts: The core Zod schema defining the required TREC 1-4 data structure.
+
+~~lib/contracts/transformation.ts~~: (Obsolete - Removed) Logic for CSV-to-JSON mapping.
+
+app/(dashboard)/dashboard/contracts/create/page.tsx: New primary entry point (The single web form UI).
+
+app/(dashboard)/dashboard/contracts/actions.ts: Contains the crucial handleSingleContractSubmission (handles validation, credit deduction, DB insertion, and PDF generation).
+
+app/api/stripe/webhook/route.ts: Handles Stripe events (subscriptions and credit top-ups).
+
+lib/payments/stripe.ts: Stripe API configuration and session creation logic.
+
+🛠️ Getting Started
 Clone the repository and install dependencies:
 
-```bash
+Bash
+
 git clone [YOUR_REPOSITORY_URL_HERE]
 cd lazily-ai
 pnpm install
