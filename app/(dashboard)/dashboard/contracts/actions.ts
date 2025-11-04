@@ -1,12 +1,9 @@
-// ./app/(dashboard)/dashboard/contracts/actions.ts
-
 'use server';
 
 import { db } from '@/lib/db/drizzle';
 import { contracts, ActivityType, teams } from '@/lib/db/schema';
 import { eq, sql } from 'drizzle-orm';
-// 💡 FIX 2: Import the new UserWithTeamId type alongside the query functions
-import { getUser, createActivityLog, UserWithTeamId } from '@/lib/db/queries'; 
+import { getUser, createActivityLog } from '@/lib/db/queries'; 
 import { PDFDocument } from 'pdf-lib';
 import fs from 'fs/promises';
 import path from 'path';
@@ -26,25 +23,67 @@ type SubmissionResult = {
 };
 
 /**
- * Handles the submission of a single contract form.
+ * CORE UTILITY: Generates a TREC 1-4 Family Contract PDF from validated data.
+ * @param contractData The validated contract form data.
+ * @returns A promise that resolves to the PDF file content as an array of bytes.
+ */
+async function generateTrecPdf(contractData: Trec14ContractData): Promise<number[]> {
+  let pdfDoc: PDFDocument;
+
+  try {
+    const templatePath = path.join(process.cwd(), 'lib/templates/TREC-20-18-automated-v1.pdf');
+    const pdfTemplateBytes = await fs.readFile(templatePath);
+    pdfDoc = await PDFDocument.load(pdfTemplateBytes);
+    const form = pdfDoc.getForm();
+    
+    const fillText = (fieldName: string, value: string | null | undefined) => {
+        try {
+        if (value !== null && value !== undefined && value.trim() !== '') form.getTextField(fieldName).setText(value);
+        } catch (e) { /* Field not found, skip silently */ }
+    };
+
+    const check = (fieldName: string, value: boolean | null | undefined) => {
+        try {
+        if (value === true) form.getCheckBox(fieldName).check(); 
+        } catch (e) { /* Field not found, skip silently */ }
+    };
+
+    // --- MAPPING LOGIC (Your existing field mapping logic) ---
+    // Example mapping:
+    // --- Parties ---
+    fillText('parties.seller', contractData.parties?.seller);
+    // ... (etc.) ...
+
+    // --- Execution ---
+    fillText('execution.day', contractData.execution?.day);
+    fillText('execution.month', contractData.execution?.month);
+    fillText('execution.year', contractData.execution?.year);
+
+    // Assuming form.flatten() is the final step
+    form.flatten();
+    
+  } catch (e) {
+      const error = e instanceof Error ? e.message : 'An unknown error occurred during PDF generation.';
+      throw new Error(`PDF Generation Failed: ${error}`);
+  }
+
+  const pdfBytes = await pdfDoc.save();
+  return Array.from(pdfBytes);
+}
+
+
+/**
+ * SERVER ACTION: Handles the submission of a new single contract form (CREATE).
  * Validates data, deducts credits, saves to DB, and generates the PDF.
  */
 export async function handleSingleContractSubmission(rawData: Partial<Trec14ContractData>): Promise<SubmissionResult> {
-  // 1. Authentication
-  // Type the user explicitly as UserWithTeam...
-
   const user = await getUser();
 
-  if (!user) {
-    return { success: false, error: 'User not found or not authenticated.' };
+  if (!user || !user.teamId) {
+    return { success: false, error: user ? 'User is not assigned to a team.' : 'User not authenticated.' };
   }
 
-  // Ensure user has a teamId
-  if (!user.teamId) {
-    return { success: false, error: 'User is not assigned to a team.' };
-  }
-
-  // 2. Data Validation
+  // 1. Data Validation
   const validated = Trec14Schema.safeParse(rawData);
 
   if (!validated.success) {
@@ -52,33 +91,24 @@ export async function handleSingleContractSubmission(rawData: Partial<Trec14Cont
   }
 
   const validatedData = validated.data;
-
-  let pdfDoc: PDFDocument; // Declare pdfDoc outside of try/catch so it's accessible
-
-  // 3. Transaction for Credit Deduction and Contract Save
+  
+  // 2. Transaction for Credit Deduction and Contract Save
   try {
     const transactionResult = await db.transaction(async (tx) => {
-      // 3a. Check for available credits
+      // Check for available credits and deduct if necessary (Free plan)
       const [team] = await tx.select().from(teams).where(eq(teams.id, user.teamId as number));
 
-      if (!team) {
-        throw new Error('Team not found for credit check.');
-      }
+      if (!team) throw new Error('Team not found for credit check.');
 
-      // Check if user has an active subscription (which grants unlimited contracts for now)
-      // and only deduct for Free plan users
       if (team.subscriptionStatus !== 'active' && team.planName === 'Free') {
-        if (team.contractCredits <= 0) {
-          throw new Error('No contract credits available.');
-        }
+        if (team.contractCredits <= 0) throw new Error('No contract credits available.');
         
-        // 3b. Deduct credit
         await tx.update(teams)
           .set({ contractCredits: sql`${teams.contractCredits} - 1` })
           .where(eq(teams.id, team.id));
       }
 
-      // 3c. Log Activity
+      // Log Activity
       await createActivityLog({
         teamId: team.id,
         userId: user.id,
@@ -86,82 +116,32 @@ export async function handleSingleContractSubmission(rawData: Partial<Trec14Cont
         details: `Generated new contract for property: ${validatedData.property.address || 'Unnamed Contract'}`,
       });
 
-      // 3d. Insert Contract Data
+      // Insert Contract Data (FIX: Removed 'contractName' to resolve Drizzle error)
       const [insertedContract] = await tx.insert(contracts).values({
         teamId: team.id,
         userId: user.id,
-        // FIX: Removed 'contractName' property to resolve the Drizzle schema error.
         contractData: validatedData as any, 
         status: 'generated',
       }).returning({ id: contracts.id });
 
-      if (!insertedContract) {
-        throw new Error('Failed to insert contract record.');
-      }
+      if (!insertedContract) throw new Error('Failed to insert contract record.');
 
-      return { teamId: team.id, contractId: insertedContract.id, validatedData };
+      return { contractData: validatedData };
     });
 
-    const { validatedData } = transactionResult;
+    const { contractData } = transactionResult;
     
-    // 4. PDF Generation (outside of main transaction)
+    // 3. PDF Generation (using the refactored utility)
+    const pdfBytes = await generateTrecPdf(contractData);
     
-    // This is the file name logic
-    const fileName = `TREC_1-4_Contract_${validatedData.property.address ? validatedData.property.address.replace(/[^a-z0-9]/gi, '_') : 'Unnamed'}.pdf`;
-
-    // 5. Build the PDF and return bytes
-    const contractData = validatedData as Trec14ContractData;
-
-    // --- PDF-LIB Implementation ---
-    try {
-      const templatePath = path.join(process.cwd(), 'lib/templates/TREC-20-18-automated-v1.pdf');
-      const pdfTemplateBytes = await fs.readFile(templatePath);
-      pdfDoc = await PDFDocument.load(pdfTemplateBytes); // Assign to declared variable
-      const form = pdfDoc.getForm();
-      
-      const fillText = (fieldName: string, value: string | null | undefined) => {
-          try {
-          if (value !== null && value !== undefined && value.trim() !== '') form.getTextField(fieldName).setText(value);
-          } catch (e) { /* Field not found, skip silently */ }
-      };
-
-      const check = (fieldName: string, value: boolean | null | undefined) => {
-          try {
-          if (value === true) form.getCheckBox(fieldName).check(); 
-          } catch (e) { /* Field not found, skip silently */ }
-      };
-
-      // --- MAPPING LOGIC (all your existing field mapping logic) ---
-
-      // Example mapping from snippet:
-      // --- Parties ---
-      fillText('parties.seller', contractData.parties?.seller);
-      // ... (etc.) ...
-
-      // --- Execution ---
-      fillText('execution.day', contractData.execution?.day);
-      fillText('execution.month', contractData.execution?.month);
-      fillText('execution.year', contractData.execution?.year);
-
-      // The provided snippet ends with `form.flatten...` which I'll assume finishes the PDF process.
-      form.flatten();
-      
-    } catch (e) {
-        const error = e instanceof Error ? e.message : 'An unknown error occurred during PDF generation.';
-        return { success: false, error: `PDF Generation Failed: ${error}` };
-    }
-
-
-    const pdfBytes = await pdfDoc.save();
-    
-    // Convert Uint8Array to number[] for serialization across the server boundary
-    const serializedPdfBytes = Array.from(pdfBytes);
+    // 4. File name logic
+    const fileName = `TREC_1-4_Contract_${contractData.property.address ? contractData.property.address.replace(/[^a-z0-9]/gi, '_') : 'Unnamed'}.pdf`;
 
     revalidatePath('/dashboard/contracts');
 
     return {
       success: true,
-      pdfBytes: serializedPdfBytes,
+      pdfBytes: Array.from(pdfBytes),
       fileName,
     };
 
@@ -169,19 +149,42 @@ export async function handleSingleContractSubmission(rawData: Partial<Trec14Cont
     const error = e instanceof Error ? e.message : 'An unknown error occurred during the contract submission process.';
     return { success: false, error: `Transaction Failed: ${error}` };
   }
-  /**
- * Action to download an ALREADY GENERATED contract.
- * NOTE: This is a placeholder function to fix the build error. 
- * The full implementation needs to query the contract data from the DB 
- * and re-run the PDF generation logic (or retrieve a saved PDF).
+}
+
+
+/**
+ * SERVER ACTION: Downloads an ALREADY GENERATED contract (READ).
+ * Fetches saved data and regenerates the PDF on demand.
+ * @param contractId The ID of the contract to download.
+ * @returns A promise that resolves to the PDF file content as an array of bytes.
  */
 export async function downloadExistingContract(contractId: number): Promise<number[]> {
-  // 1. Authentication Check (Omitted for brevity/placeholder)
+  const user = await getUser();
 
-  // 2. Placeholder: Log the intent and return an empty array to fix the build.
-  console.log(`[LAZILY.AI] Running placeholder download action for Contract ID: ${contractId}`);
+  if (!user) {
+    throw new Error('User not authenticated.');
+  }
 
-  // FIX FOR BUILD: Returning an empty array to satisfy the Promise<number[]> return type.
-  // The site will deploy, but this download button will throw an alert at runtime until you add the full logic.
-  return []; 
+  // 1. Fetch Contract Data
+  const [contractRecord] = await db.select()
+    .from(contracts)
+    .where(eq(contracts.id, contractId))
+    .limit(1);
+
+  if (!contractRecord) {
+    throw new Error(`Contract with ID ${contractId} not found.`);
+  }
+
+  // 2. Security Check (Ensure user belongs to the contract's team)
+  if (user.teamId !== contractRecord.teamId) {
+      throw new Error("Access denied. Contract does not belong to your team.");
+  }
+  
+  // 3. Regenerate PDF from stored data using the utility function
+  const contractData = Trec14Schema.parse(contractRecord.contractData);
+  const pdfBytes = await generateTrecPdf(contractData);
+
+  return Array.from(pdfBytes);
 }
+
+// Ensure proper closing braces here (if any other code follows, place it after this).
