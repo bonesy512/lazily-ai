@@ -13,7 +13,7 @@ import { teams } from '../db/schema';
 import { eq } from 'drizzle-orm';
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-04-30.basil'
+  apiVersion: '2025-08-27.basil'
 });
 
 // This function is now updated to handle both 'subscription' and 'payment' modes
