@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { TeamContractDefaults } from '@/lib/db/schema';
-import { ActionState } from '@/lib/auth/middleware';
+import { ActionState } from '@/lib/auth/action-helpers';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 

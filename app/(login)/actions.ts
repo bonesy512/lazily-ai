@@ -27,9 +27,9 @@ import { cookies } from 'next/headers';
 import { createCheckoutSession } from '@/lib/payments/stripe';
 import { getUser, getUserWithTeam } from '@/lib/db/queries';
 import {
-  validatedAction,
-  validatedActionWithUser,
-} from '@/lib/auth/middleware';
+  createValidatedAction,
+  createValidatedActionWithUser,
+} from '@/lib/auth/action-helpers';
 import { Trec14Schema } from '@/lib/contracts/validation'; // Import Zod Validator
 import { mapCsvRowToJson } from '@/lib/contracts/transformation'; // Import CSV Transformer
 

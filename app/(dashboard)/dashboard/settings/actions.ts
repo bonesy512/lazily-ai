@@ -5,7 +5,7 @@
 import { z } from 'zod';
 import { db } from '@/lib/db/drizzle';
 import { teamContractDefaults } from '@/lib/db/schema';
-import { validatedActionWithUser } from '@/lib/auth/middleware';
+import { createValidatedActionWithUser } from '@/lib/auth/action-helpers';
 import { getUserWithTeam } from '@/lib/db/queries';
 import { revalidatePath } from 'next/cache';
 

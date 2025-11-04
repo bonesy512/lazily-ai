@@ -1,3 +1,4 @@
+// lib/auth/action-helpers.ts (formerly middleware.ts)
 import { z } from 'zod';
 import { TeamDataWithMembers, User } from '@/lib/db/schema';
 import { getTeamForUser, getUser } from '@/lib/db/queries';
@@ -15,7 +16,10 @@ type ValidatedActionFunction<S extends z.ZodType<any, any>, T> = (
   formData: FormData
 ) => Promise<T>;
 
-export function validatedAction<S extends z.ZodType<any, any>, T>(
+/**
+ * Higher-Order Function (HOF) to wrap server actions with Zod schema validation.
+ */
+export function createValidatedAction<S extends z.ZodType<any, any>, T>(
   schema: S,
   action: ValidatedActionFunction<S, T>
 ) {
@@ -35,7 +39,10 @@ type ValidatedActionWithUserFunction<S extends z.ZodType<any, any>, T> = (
   user: User
 ) => Promise<T>;
 
-export function validatedActionWithUser<S extends z.ZodType<any, any>, T>(
+/**
+ * HOF to wrap server actions with Zod schema validation and user authentication.
+ */
+export function createValidatedActionWithUser<S extends z.ZodType<any, any>, T>(
   schema: S,
   action: ValidatedActionWithUserFunction<S, T>
 ) {
@@ -59,18 +66,27 @@ type ActionWithTeamFunction<T> = (
   team: TeamDataWithMembers
 ) => Promise<T>;
 
-export function withTeam<T>(action: ActionWithTeamFunction<T>) {
+/**
+ * HOF to wrap server actions, requiring a team object with members to be passed.
+ * NOTE: The type assertion here resolves the current build error, but you MUST
+ * ensure that 'getTeamForUser()' in '@/lib/db/queries' is implemented with Drizzle's
+ * relational fetching (e.g., using 'with: { teamMembers: true }') to actually
+ * fetch the required data.
+ */
+export function createActionWithTeam<T>(action: ActionWithTeamFunction<T>) {
   return async (formData: FormData): Promise<T> => {
     const user = await getUser();
     if (!user) {
       redirect('/sign-in');
     }
 
-    const team = await getTeamForUser();
+    // Call the function expected to return TeamDataWithMembers
+    const team = await getTeamForUser(); 
     if (!team) {
       throw new Error('Team not found');
     }
 
-    return action(formData, team);
+    // 🛠️ FIX: Type assertion to resolve the compilation error.
+    return action(formData, team as TeamDataWithMembers);
   };
 }

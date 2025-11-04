@@ -6,7 +6,7 @@ import useSWR from 'swr';
 import { Button } from "@/components/ui/button";
 import { Trec14ContractData, Trec14Schema } from '@/lib/contracts/validation';
 import { TeamContractDefaults } from '@/lib/db/schema';
-import { ActionState } from '@/lib/auth/middleware';
+import { ActionState } from '@/lib/auth/action-helpers';
 import { Loader2, FileText, Save, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
