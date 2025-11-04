@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
-// FIX: Change the imported function name to the new, logical action we will export.
+// This assumes you updated the import in the previous step
 import { downloadExistingContract } from '@/app/(dashboard)/dashboard/contracts/actions'; 
 
 export function DownloadContractButton({ contractId, contractAddress }: { contractId: number; contractAddress: string | null }) {
@@ -14,12 +14,15 @@ export function DownloadContractButton({ contractId, contractAddress }: { contra
   const handleDownload = async () => {
     setIsLoading(true);
     try {
-      // Call the server action to get the PDF bytes
-      // FIX: Call the new function. This is what resolves the build error.
+      // 1. Call the server action to get the PDF bytes (as number[])
       const pdfBytes = await downloadExistingContract(contractId);
       
-      // Use the browser to create a downloadable file from the bytes
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      // 2. FIX: Convert the received number[] back to a Uint8Array (binary type)
+      const uint8Array = new Uint8Array(pdfBytes);
+      
+      // 3. Use the browser to create a downloadable file from the binary data
+      // The Blob constructor now correctly receives a Uint8Array, resolving the TypeScript error.
+      const blob = new Blob([uint8Array], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

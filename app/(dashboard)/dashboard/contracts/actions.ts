@@ -108,15 +108,15 @@ export async function handleSingleContractSubmission(rawData: Partial<Trec14Cont
           .where(eq(teams.id, team.id));
       }
 
-      // Log Activity
+      // Log Activity (FIX: Removed 'details' property as it is not present in the expected type)
       await createActivityLog({
         teamId: team.id,
         userId: user.id,
-        type: ActivityType.CONTRACT_GENERATED,
-        details: `Generated new contract for property: ${validatedData.property.address || 'Unnamed Contract'}`,
+        action: ActivityType.CONTRACT_GENERATED, 
+        // details property was removed here
       });
 
-      // Insert Contract Data (FIX: Removed 'contractName' to resolve Drizzle error)
+      // Insert Contract Data (Fixed Drizzle Error)
       const [insertedContract] = await tx.insert(contracts).values({
         teamId: team.id,
         userId: user.id,
@@ -181,10 +181,9 @@ export async function downloadExistingContract(contractId: number): Promise<numb
   }
   
   // 3. Regenerate PDF from stored data using the utility function
+  // Note: contractData is stored as JSON in the database and needs to match the Trec14Schema type
   const contractData = Trec14Schema.parse(contractRecord.contractData);
   const pdfBytes = await generateTrecPdf(contractData);
 
   return Array.from(pdfBytes);
 }
-
-// Ensure proper closing braces here (if any other code follows, place it after this).
