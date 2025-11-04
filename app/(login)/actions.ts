@@ -60,7 +60,7 @@ const signInSchema = z.object({
   email: z.string().email().min(3).max(255),
   password: z.string().min(8).max(100)
 });
-export const signIn = validatedAction(signInSchema, async (data, formData) => {
+export const signIn = createValidatedAction(signInSchema, async (data, formData) => {
   const { email, password } = data;
   const userWithTeam = await db
     .select({ user: users, team: teams })
@@ -95,7 +95,7 @@ const signUpSchema = z.object({
   password: z.string().min(8),
   inviteId: z.string().optional()
 });
-export const signUp = validatedAction(signUpSchema, async (data, formData) => {
+export const signUp = createValidatedAction(signUpSchema, async (data, formData) => {
   const { email, password, inviteId } = data;
   const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
   if (existingUser.length > 0) {
@@ -157,7 +157,7 @@ const updatePasswordSchema = z.object({
   newPassword: z.string().min(8).max(100),
   confirmPassword: z.string().min(8).max(100)
 });
-export const updatePassword = validatedActionWithUser(
+export const updatePassword = createValidatedActionWithUser(
   updatePasswordSchema,
   async (data, _, user) => {
     const { currentPassword, newPassword, confirmPassword } = data;
@@ -184,7 +184,7 @@ export const updatePassword = validatedActionWithUser(
 const deleteAccountSchema = z.object({
   password: z.string().min(8).max(100)
 });
-export const deleteAccount = validatedActionWithUser(
+export const deleteAccount = createValidatedActionWithUser(
   deleteAccountSchema,
   async (data, _, user) => {
     const { password } = data;
@@ -223,7 +223,7 @@ const updateAccountSchema = z.object({
   marketingEmailConsent: z.enum(['on', 'off']).optional(),
   marketingSmsConsent: z.enum(['on', 'off']).optional()
 });
-export const updateAccount = validatedActionWithUser(
+export const updateAccount = createValidatedActionWithUser(
   updateAccountSchema,
   async (data, _, user) => {
     const { name, phone, marketingEmailConsent, marketingSmsConsent } = data;
@@ -244,7 +244,7 @@ export const updateAccount = validatedActionWithUser(
 const removeTeamMemberSchema = z.object({
   memberId: z.coerce.number()
 });
-export const removeTeamMember = validatedActionWithUser(
+export const removeTeamMember = createValidatedActionWithUser(
   removeTeamMemberSchema,
   async (data, _, user) => {
     const { memberId } = data;
@@ -265,7 +265,7 @@ const inviteTeamMemberSchema = z.object({
   email: z.string().email('Invalid email address'),
   role: z.enum(['member', 'owner'])
 });
-export const inviteTeamMember = validatedActionWithUser(
+export const inviteTeamMember = createValidatedActionWithUser(
   inviteTeamMemberSchema,
   async (data, _, user) => {
     const { email, role } = data;
