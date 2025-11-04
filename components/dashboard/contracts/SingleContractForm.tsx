@@ -60,10 +60,20 @@ export function SingleContractForm() {
   const updateBrokersField = (section: 'listing' | 'other' | 'selling', subSection: any, field: string, value: any) => {
     setFormData(prev => {
       const newBrokers = { ...prev.brokers };
-      const targetSection = { ...newBrokers[section] };
+      
+      const defaultNestedProps = { associate: {}, supervisor: {}, address: {} };
+
+      let targetSection = { 
+        ...defaultNestedProps, 
+        ...(newBrokers[section] || {}), 
+      };
+      
       if (typeof (targetSection as any)[subSection] === 'object' && (targetSection as any)[subSection] !== null) {
         (targetSection as any)[subSection] = { ...((targetSection as any)[subSection] as object), [field]: value, };
-      } else { (targetSection as any)[subSection] = value; }
+      } else { 
+        (targetSection as any)[subSection] = value; 
+      }
+      
       newBrokers[section] = targetSection;
       return { ...prev, brokers: newBrokers };
     });
@@ -82,10 +92,24 @@ export function SingleContractForm() {
     }
     try {
         const result = await handleSingleContractSubmission(validationResult.data);
-        if (result.success && result.pdfBytes) {
-             const pdfBytesUint8 = new Uint8Array(result.pdfBytes); const blob = new Blob([pdfBytesUint8], { type: 'application/pdf' }); const url = window.URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = result.fileName || 'Generated_Contract.pdf'; document.body.appendChild(link); link.click(); document.body.removeChild(link); window.URL.revokeObjectURL(url); router.push('/dashboard/contracts');
+        // FIX APPLIED: Check only for result.success to correctly narrow the type
+        if (result.success) {
+             const pdfBytesUint8 = new Uint8Array(result.pdfBytes); 
+             const blob = new Blob([pdfBytesUint8], { type: 'application/pdf' }); 
+             const url = window.URL.createObjectURL(blob); 
+             const link = document.createElement('a'); 
+             link.href = url; 
+             link.download = result.fileName || 'Generated_Contract.pdf'; 
+             document.body.appendChild(link); 
+             link.click(); 
+             document.body.removeChild(link); 
+             window.URL.revokeObjectURL(url); 
+             router.push('/dashboard/contracts');
         } else {
-            console.error("Server Error:", result.error); setErrorMessage(result.error || "An unknown error occurred."); window.scrollTo(0, 0);
+            // TypeScript now correctly understands this is the { success: false, error: string } object
+            console.error("Server Error:", result.error); 
+            setErrorMessage(result.error || "An unknown error occurred."); 
+            window.scrollTo(0, 0);
         }
     } catch (error) {
         console.error("Network or unexpected error:", error); setErrorMessage("An unexpected error occurred."); window.scrollTo(0, 0);
@@ -110,7 +134,6 @@ export function SingleContractForm() {
         <BrokersSection brokersData={getSectionData('brokers')} updateBrokersField={updateBrokersField} />
         <ClosingAndAddendaSection closingData={getSectionData('closing')} addendaData={getSectionData('addenda')} updateClosingField={(f, v) => updateField('closing', f, v)} updateAddendaField={(f, v) => updateField('addenda', f, v)} />
         
-        {/* --- THIS IS THE CORRECTED SECTION --- */}
         <NoticesAttorneysExecutionSection
             noticesData={getSectionData('notices')}
             attorneysData={getSectionData('attorneys')}
@@ -119,7 +142,6 @@ export function SingleContractForm() {
             updateNoticesField={(section, field, value) => updateField('notices', section, { ...formData.notices[section], [field]: value })}
             updateAttorneysField={(section, field, value) => updateField('attorneys', section, { ...formData.attorneys[section], [field]: value })}
         />
-        {/* ------------------------------------ */}
 
         <div className="mt-12 flex justify-end border-t pt-8">
             <Button type="submit" disabled={isGenerating || isLoadingDefaults} size="lg" className="font-bold py-3 px-8 text-lg shadow-md">
@@ -129,4 +151,4 @@ export function SingleContractForm() {
       </form>
     </div>
   );
-};
+}
