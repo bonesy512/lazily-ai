@@ -1,6 +1,7 @@
 // lib/db/queries.ts
 
-import { desc, and, eq, isNull } from 'drizzle-orm';
+// ✅ FIX 1: Add getTableColumns to the import list
+import { desc, and, eq, isNull, getTableColumns } from 'drizzle-orm';
 import { db } from './drizzle';
 // Import table objects (values)
 import { activityLogs, teamMembers, teams, users, contracts, ActivityType, User } from './schema';
@@ -10,12 +11,10 @@ import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/auth/session';
 
 // --- TYPE FOR NEW USER OBJECT ---
-// This is the combined type that includes the teamId for all queries
 export type UserWithTeamId = User & { teamId: number | null };
 
 
-// ✅ FIX 1: UPDATED getUser function
-// It now performs a LEFT JOIN on teamMembers to fetch teamId directly.
+// ✅ FIX 2: UPDATED getUser function to use getTableColumns
 export async function getUser(): Promise<UserWithTeamId | null> {
   const sessionCookie = (await cookies()).get('session');
   if (!sessionCookie || !sessionCookie.value) {
@@ -35,11 +34,11 @@ export async function getUser(): Promise<UserWithTeamId | null> {
     return null;
   }
 
-  // --- BEGIN FIX: Join to get teamId ---
+  // --- BEGIN FIX: Use getTableColumns to resolve type error (line 40) ---
   const result = await db
     .select({
-      // Select all user fields
-      ...users,
+      // Use getTableColumns(users) to spread ONLY the column definitions
+      ...getTableColumns(users), 
       // Select the teamId from the joined teamMembers table
       teamId: teamMembers.teamId,
     })
@@ -54,9 +53,11 @@ export async function getUser(): Promise<UserWithTeamId | null> {
     return null;
   }
 
-  // The result is an object combining user and teamMembers data (UserWithTeamId)
   return result[0];
 }
+
+
+// --- REST OF THE FILE REMAINS THE SAME ---
 
 export async function getTeamByStripeCustomerId(customerId: string) {
   const result = await db
@@ -85,7 +86,6 @@ export async function updateTeamSubscription(
     .where(eq(teams.id, teamId));
 }
 
-// NOTE: This function is now mostly redundant with the new getUser(), but kept for compatibility.
 export async function getUserWithTeam(userId: number) { 
   const result = await db
     .select({
@@ -100,16 +100,12 @@ export async function getUserWithTeam(userId: number) {
   return result[0];
 }
 
-// ✅ FIX 2: Corrected getActivityLogs function
-// Fetches logs for the entire team and handles unauthenticated users gracefully.
 export async function getActivityLogs() {
-  const user = await getUser(); // New user object has teamId
+  const user = await getUser();
   if (!user || !user.teamId) {
-    // Crucial: Return empty array instead of throwing to prevent 500/TypeError
     return []; 
   }
 
-  // Fetch activity logs by the user's teamId
   const logs = await db
     .select({
       id: activityLogs.id,
@@ -120,34 +116,28 @@ export async function getActivityLogs() {
     })
     .from(activityLogs)
     .leftJoin(users, eq(activityLogs.userId, users.id))
-    .where(eq(activityLogs.teamId, user.teamId)) // Filter by teamId (FIX)
+    .where(eq(activityLogs.teamId, user.teamId))
     .orderBy(desc(activityLogs.timestamp))
     .limit(10);
     
   return logs;
 }
 
-// ✅ FIX 3: Simplified getTeamForUser function
-// Uses the teamId directly from the new getUser() result, resolving the 500 error.
 export async function getTeamForUser() {
   const user = await getUser();
   if (!user || !user.teamId) {
     return null;
   }
 
-  // Fetch the Team object directly by teamId
   const team = await db.query.teams.findFirst({
     where: eq(teams.id, user.teamId),
   });
   
-  return team || null; // This will return the full team object needed by /api/team
+  return team || null;
 }
 
-// ✅ FIX 4: Simplified getContractsForUser function
-// Removes the redundant call to getUserWithTeam.
 export async function getContractsForUser(): Promise<Contract[]> {
     const user = await getUser();
-    // New user object has teamId
     if (!user || !user.teamId) return [];
   
     try {

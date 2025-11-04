@@ -29,7 +29,7 @@ const defaultsSchema = z.object({
   escrowAgentName: z.string().optional(),
 });
 
-export const updateTeamDefaults = validatedActionWithUser(
+export const updateTeamDefaults = createValidatedActionWithUser(
   defaultsSchema,
   async (data, formData, user) => {
     const userWithTeam = await getUserWithTeam(user.id);
