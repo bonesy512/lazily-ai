@@ -5,7 +5,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
-import { generateContractAction } from '@/app/(dashboard)/dashboard/contracts/actions';
+// FIX: Change the imported function name to the new, logical action we will export.
+import { downloadExistingContract } from '@/app/(dashboard)/dashboard/contracts/actions'; 
 
 export function DownloadContractButton({ contractId, contractAddress }: { contractId: number; contractAddress: string | null }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -14,7 +15,8 @@ export function DownloadContractButton({ contractId, contractAddress }: { contra
     setIsLoading(true);
     try {
       // Call the server action to get the PDF bytes
-      const pdfBytes = await generateContractAction(contractId);
+      // FIX: Call the new function. This is what resolves the build error.
+      const pdfBytes = await downloadExistingContract(contractId);
       
       // Use the browser to create a downloadable file from the bytes
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
