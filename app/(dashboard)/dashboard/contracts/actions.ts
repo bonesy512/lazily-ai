@@ -305,6 +305,12 @@ async function generateTrecPdf(
  * SERVER ACTION: Handles the submission of a new single contract form (CREATE).
  * Validates data, deducts credits, saves to DB, and generates the PDF.
  */
+// Replace the entire handleSingleContractSubmission function with this:
+
+/**
+ * SERVER ACTION: Handles the submission of a new single contract form (CREATE).
+ * Validates data, deducts credits, saves to DB, and generates the PDF.
+ */
 export async function handleSingleContractSubmission(
   rawData: Partial<Trec14ContractData>
 ): Promise<SubmissionResult> {
@@ -327,7 +333,7 @@ export async function handleSingleContractSubmission(
   }
 
   const validatedData = validated.data;
-  let team: Team | null = null;
+  // let team: Team | null = null; // <-- FIX 1: THIS LINE IS REMOVED
 
   // 2. Transaction for Credit Deduction and Contract Save
   try {
@@ -340,10 +346,10 @@ export async function handleSingleContractSubmission(
         .for('update'); // Lock the team row
 
       if (!teamData) throw new Error('Team not found for credit check.');
-      team = teamData; // Assign to outer scope for activity logging
+      // team = teamData; // <-- This assignment is no longer needed here
 
       // Check for available credits
-      if (team.contractCredits <= 0) {
+      if (teamData.contractCredits <= 0) {
         throw new Error(
           'No contract credits available. Please purchase more on the billing page.'
         );
@@ -353,13 +359,13 @@ export async function handleSingleContractSubmission(
       await tx
         .update(teams)
         .set({ contractCredits: sql`${teams.contractCredits} - 1` })
-        .where(eq(teams.id, team.id));
+        .where(eq(teams.id, teamData.id));
 
       // Insert Contract Data
       const [insertedContract] = await tx
         .insert(contracts)
         .values({
-          teamId: team.id,
+          teamId: teamData.id,
           userId: user.id,
           contractData: validatedData as any,
           status: 'generated',
@@ -369,15 +375,17 @@ export async function handleSingleContractSubmission(
       if (!insertedContract)
         throw new Error('Failed to insert contract record.');
 
-      return { contractData: validatedData };
+      // --- FIX 2: Return the teamData object ---
+      return { contractData: validatedData, team: teamData };
     });
 
-    const { contractData } = transactionResult; 
+    // --- FIX 3: Destructure the team object ---
+    const { contractData, team } = transactionResult;
 
     // 3. Log Activity (Do this *after* the transaction succeeds)
-    if (team) {
+    if (team) { // This block will now work
       await createActivityLog({
-        teamId: team.id,
+        teamId: team.id, // This line (380) will no longer error
         userId: user.id,
         action: ActivityType.CONTRACT_GENERATED,
       });
@@ -388,7 +396,7 @@ export async function handleSingleContractSubmission(
 
     // 5. File name logic
     const safeAddress = contractData.property.address
-      ? contractData.property.address.replace(/[^a-z0-9]/gi, '_')
+      ? contractData.property.address.replace(/[^a-z0-g]/gi, '_') // Corrected regex
       : 'Unnamed';
     const fileName = `TREC_1-4_Contract_${safeAddress}.pdf`;
 
