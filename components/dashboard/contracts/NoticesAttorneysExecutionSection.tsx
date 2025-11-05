@@ -45,10 +45,10 @@ export const NoticesAttorneysExecutionSection: React.FC<Props> = ({
           <h4 className="font-medium mb-4">Notices</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="buyer-notice-email">Buyer's Notice Email</Label>
+              <Label htmlFor="buyer-notice-info1">Buyer's Contact Info (Line 1)</Label>
               <Input
-                id="buyer-notice-email"
-                placeholder="buyer@example.com"
+                id="buyer-notice-info1"
+                placeholder="Buyer Name or LLC"
                 value={noticesData?.buyer?.contactInfo?.part1 ?? ''}
                 onChange={(e) =>
                   updateNoticesField('buyer', 'contactInfo', {
@@ -59,15 +59,43 @@ export const NoticesAttorneysExecutionSection: React.FC<Props> = ({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="seller-notice-email">Seller's Notice Email</Label>
+              <Label htmlFor="seller-notice-info1">Seller's Contact Info (Line 1)</Label>
               <Input
-                id="seller-notice-email"
-                placeholder="seller@example.com"
+                id="seller-notice-info1"
+                placeholder="Seller Name"
                 value={noticesData?.seller?.contactInfo?.part1 ?? ''}
                 onChange={(e) =>
                   updateNoticesField('seller', 'contactInfo', {
                     ...noticesData.seller.contactInfo,
                     part1: e.target.value,
+                  })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="buyer-notice-info2">Buyer's Contact Info (Line 2 - e.g., Address)</Label>
+              <Input
+                id="buyer-notice-info2"
+                placeholder="c/o Buyer's Agent or Address"
+                value={noticesData?.buyer?.contactInfo?.part2 ?? ''}
+                onChange={(e) =>
+                  updateNoticesField('buyer', 'contactInfo', {
+                    ...noticesData.buyer.contactInfo,
+                    part2: e.target.value,
+                  })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seller-notice-info2">Seller's Contact Info (Line 2 - e.g., Address)</Label>
+              <Input
+                id="seller-notice-info2"
+                placeholder="c/o Seller's Agent or Address"
+                value={noticesData?.seller?.contactInfo?.part2 ?? ''}
+                onChange={(e) =>
+                  updateNoticesField('seller', 'contactInfo', {
+                    ...noticesData.seller.contactInfo,
+                    part2: e.target.value,
                   })
                 }
               />
@@ -168,7 +196,7 @@ export const NoticesAttorneysExecutionSection: React.FC<Props> = ({
               <Label htmlFor="exec-month">Month</Label>
               <Input
                 id="exec-month"
-                placeholder="October"
+                placeholder="November"
                 value={executionData?.month ?? ''}
                 onChange={(e) =>
                   updateExecutionField('month', e.target.value)
@@ -179,7 +207,7 @@ export const NoticesAttorneysExecutionSection: React.FC<Props> = ({
               <Label htmlFor="exec-day">Day</Label>
               <Input
                 id="exec-day"
-                placeholder="17"
+                placeholder="5"
                 value={executionData?.day ?? ''}
                 onChange={(e) => updateExecutionField('day', e.target.value)}
               />

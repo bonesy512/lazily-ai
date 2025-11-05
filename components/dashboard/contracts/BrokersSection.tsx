@@ -88,36 +88,71 @@ export const BrokersSection: React.FC<Props> = ({
               </div>
             </RadioGroup>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="other-assoc-name">Associate's Name</Label>
-              <Input
-                id="other-assoc-name"
-                value={brokersData?.other?.associate?.name ?? ''}
-                onChange={(e) =>
-                  updateBrokersField(
-                    'other',
-                    'associate',
-                    'name',
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="other-assoc-license">Associate's License No.</Label>
-              <Input
-                id="other-assoc-license"
-                value={brokersData?.other?.associate?.licenseNo ?? ''}
-                onChange={(e) =>
-                  updateBrokersField(
-                    'other',
-                    'associate',
-                    'licenseNo',
-                    e.target.value
-                  )
-                }
-              />
+          <div className="space-y-4 pt-2">
+            <Label className="font-medium">Other Associate's Information</Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="other-assoc-name">Name</Label>
+                <Input
+                  id="other-assoc-name"
+                  value={brokersData?.other?.associate?.name ?? ''}
+                  onChange={(e) =>
+                    updateBrokersField(
+                      'other',
+                      'associate',
+                      'name',
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="other-assoc-license">License No.</Label>
+                <Input
+                  id="other-assoc-license"
+                  value={brokersData?.other?.associate?.licenseNo ?? ''}
+                  onChange={(e) =>
+                    updateBrokersField(
+                      'other',
+                      'associate',
+                      'licenseNo',
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="other-assoc-email">Email</Label>
+                <Input
+                  id="other-assoc-email"
+                  type="email"
+                  value={brokersData?.other?.associate?.email ?? ''}
+                  onChange={(e) =>
+                    updateBrokersField(
+                      'other',
+                      'associate',
+                      'email',
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="other-assoc-phone">Phone</Label>
+                <Input
+                  id="other-assoc-phone"
+                  type="tel"
+                  value={brokersData?.other?.associate?.phone ?? ''}
+                  onChange={(e) =>
+                    updateBrokersField(
+                      'other',
+                      'associate',
+                      'phone',
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -177,38 +212,71 @@ export const BrokersSection: React.FC<Props> = ({
               </div>
             </RadioGroup>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="listing-assoc-name">Listing Associate's Name</Label>
-              <Input
-                id="listing-assoc-name"
-                value={brokersData?.listing?.associate?.name ?? ''}
-                onChange={(e) =>
-                  updateBrokersField(
-                    'listing',
-                    'associate',
-                    'name',
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="listing-assoc-license">
-                Listing Associate's License No.
-              </Label>
-              <Input
-                id="listing-assoc-license"
-                value={brokersData?.listing?.associate?.licenseNo ?? ''}
-                onChange={(e) =>
-                  updateBrokersField(
-                    'listing',
-                    'associate',
-                    'licenseNo',
-                    e.target.value
-                  )
-                }
-              />
+          <div className="space-y-4 pt-2">
+            <Label className="font-medium">Listing Associate's Information</Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="listing-assoc-name">Name</Label>
+                <Input
+                  id="listing-assoc-name"
+                  value={brokersData?.listing?.associate?.name ?? ''}
+                  onChange={(e) =>
+                    updateBrokersField(
+                      'listing',
+                      'associate',
+                      'name',
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="listing-assoc-license">License No.</Label>
+                <Input
+                  id="listing-assoc-license"
+                  value={brokersData?.listing?.associate?.licenseNo ?? ''}
+                  onChange={(e) =>
+                    updateBrokersField(
+                      'listing',
+                      'associate',
+                      'licenseNo',
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="listing-assoc-email">Email</Label>
+                <Input
+                  id="listing-assoc-email"
+                  type="email"
+                  value={brokersData?.listing?.associate?.email ?? ''}
+                  onChange={(e) =>
+                    updateBrokersField(
+                      'listing',
+                      'associate',
+                      'email',
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="listing-assoc-phone">Phone</Label>
+                <Input
+                  id="listing-assoc-phone"
+                  type="tel"
+                  value={brokersData?.listing?.associate?.phone ?? ''}
+                  onChange={(e) =>
+                    updateBrokersField(
+                      'listing',
+                      'associate',
+                      'phone',
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
             </div>
           </div>
         </div>
